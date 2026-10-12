@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedClientsRouteImport } from './routes/_authenticated/clients'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedEmployeesRouteImport } from './routes/_authenticated/employees'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedSuppliersRouteImport } from './routes/_authenticated/suppliers'
@@ -38,6 +39,11 @@ const AuthRoute = AuthRouteImport.update({
 const AuthenticatedClientsRoute = AuthenticatedClientsRouteImport.update({
   id: '/clients',
   path: '/clients',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedEmployeesRoute = AuthenticatedEmployeesRouteImport.update({
@@ -82,6 +88,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/clients': typeof AuthenticatedClientsRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
   '/employees': typeof AuthenticatedEmployeesRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/suppliers': typeof AuthenticatedSuppliersRoute
@@ -94,6 +101,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/clients': typeof AuthenticatedClientsRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
   '/employees': typeof AuthenticatedEmployeesRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/suppliers': typeof AuthenticatedSuppliersRoute
@@ -108,6 +116,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/clients': typeof AuthenticatedClientsRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/employees': typeof AuthenticatedEmployeesRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/suppliers': typeof AuthenticatedSuppliersRoute
@@ -122,6 +131,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/clients'
+    | '/dashboard'
     | '/employees'
     | '/notifications'
     | '/suppliers'
@@ -134,6 +144,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/clients'
+    | '/dashboard'
     | '/employees'
     | '/notifications'
     | '/suppliers'
@@ -147,6 +158,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/clients'
+    | '/_authenticated/dashboard'
     | '/_authenticated/employees'
     | '/_authenticated/notifications'
     | '/_authenticated/suppliers'
@@ -190,6 +202,13 @@ declare module '@tanstack/react-router' {
       path: '/clients'
       fullPath: '/clients'
       preLoaderRoute: typeof AuthenticatedClientsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/employees': {
@@ -246,6 +265,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedClientsRoute: typeof AuthenticatedClientsRoute
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedEmployeesRoute: typeof AuthenticatedEmployeesRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedSuppliersRoute: typeof AuthenticatedSuppliersRoute
@@ -257,6 +277,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedClientsRoute: AuthenticatedClientsRoute,
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedEmployeesRoute: AuthenticatedEmployeesRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedSuppliersRoute: AuthenticatedSuppliersRoute,
