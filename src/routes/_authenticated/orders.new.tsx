@@ -118,7 +118,7 @@ function NewOrder() {
                   e.preventDefault();
                   const p = products.find((x) => x.id === custom.product_id);
                   const s = suppliers.find((x) => x.id === custom.supplier_id);
-                  if (!p || !s) return toast.error("Выберите товар и поставщика");
+                  if (!p || !s) { toast.error("Выберите товар и поставщика"); return; }
                   setLines([...lines, { key: crypto.randomUUID(), source: "supplier", product_id: p.id, supplier_id: s.id, supplierName: s.name, label: `${p.sku} ${p.name}`, meters: Number(custom.meters), price: Number(custom.price || p.sale_price) }]);
                   setCustom({ product_id: "", supplier_id: "", meters: "", price: "" });
                 }}>

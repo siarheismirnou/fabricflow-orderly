@@ -107,11 +107,11 @@ export function DirectoryPage({
           </TableHeader>
           <TableBody>
             {rows.map((r) => (
-              <TableRow key={r.id}>
+              <TableRow key={r["id"]}>
                 {fields.map((f, i) => <TableCell key={f.key} className={i === 0 ? "font-semibold" : ""}>{r[f.key] || "—"}</TableCell>)}
                 {canEdit && (
                   <TableCell>
-                    <Button size="icon" variant="ghost" onClick={() => confirm("Удалить запись?") && del.mutate(r.id)}>
+                    <Button size="icon" variant="ghost" onClick={() => confirm("Удалить запись?") && del.mutate(r["id"]!)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </TableCell>

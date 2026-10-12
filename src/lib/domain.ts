@@ -47,7 +47,7 @@ export const STATUS_CHANGE_ROLES: Record<OrderStatus, AppRole[]> = {
 
 export function nextStatus(s: OrderStatus): OrderStatus | null {
   const i = STATUS_FLOW.indexOf(s);
-  return i >= 0 && i < STATUS_FLOW.length - 1 ? STATUS_FLOW[i + 1] : null;
+  return i >= 0 && i < STATUS_FLOW.length - 1 ? (STATUS_FLOW[i + 1] ?? null) : null;
 }
 
 export function canMoveTo(roles: AppRole[], to: OrderStatus): boolean {

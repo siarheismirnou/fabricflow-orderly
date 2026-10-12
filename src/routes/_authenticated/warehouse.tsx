@@ -156,7 +156,7 @@ function ReceiptDialog({ products }: { products: { id: string; sku: string; name
       <DialogTrigger asChild><Button><PackagePlus className="mr-1 h-4 w-4" /> Оформить приход</Button></DialogTrigger>
       <DialogContent>
         <DialogHeader><DialogTitle>Приход товара на склад</DialogTitle></DialogHeader>
-        <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); if (!f.product_id) return toast.error("Выберите товар"); m.mutate(); }}>
+        <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); if (!f.product_id) { toast.error("Выберите товар"); return; } m.mutate(); }}>
           <div className="space-y-1.5"><Label>Товар</Label>
             <Select value={f.product_id} onValueChange={(v) => setF({ ...f, product_id: v })}>
               <SelectTrigger><SelectValue placeholder="Выберите ткань" /></SelectTrigger>
