@@ -6,6 +6,7 @@ import { PackagePlus, Plus, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { hasAny, useMe } from "@/lib/auth";
 import { meters, rub } from "@/lib/domain";
+import { useLots, useProducts, useSuppliers } from "@/lib/queries";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,32 +20,6 @@ export const Route = createFileRoute("/_authenticated/warehouse")({
   head: () => ({ meta: [{ title: "Склад — Ткани" }, { name: "description", content: "Остатки, приход и номенклатура тканей" }, { property: "og:title", content: "Склад — Ткани" }, { property: "og:description", content: "Остатки, приход и номенклатура тканей" }] }),
   component: Warehouse,
 });
-
-export function useLots() {
-  return useQuery({
-    queryKey: ["lots"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("stock_receipts")
-        .select("*, products(sku,name,color,composition,width_cm,sale_price), suppliers(name)")
-        .order("received_at", { ascending: false });
-      if (error) throw error;
-      return data;
-    },
-  });
-}
-export function useProducts() {
-  return useQuery({
-    queryKey: ["products"],
-    queryFn: async () => (await supabase.from("products").select("*").order("name")).data ?? [],
-  });
-}
-export function useSuppliers() {
-  return useQuery({
-    queryKey: ["suppliers"],
-    queryFn: async () => (await supabase.from("suppliers").select("*").order("name")).data ?? [],
-  });
-}
 
 function Warehouse() {
   const { data: me } = useMe();
