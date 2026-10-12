@@ -79,6 +79,44 @@ export type Database = {
           },
         ]
       }
+      order_documents: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_path: string
+          id: string
+          kind: Database["public"]["Enums"]["doc_kind"]
+          order_id: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_path: string
+          id?: string
+          kind: Database["public"]["Enums"]["doc_kind"]
+          order_id: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["doc_kind"]
+          order_id?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_documents_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           id: string
@@ -405,6 +443,7 @@ export type Database = {
         | "sales_manager"
         | "hr"
         | "warehouse"
+      doc_kind: "supplier_invoice" | "payment_order"
       item_source: "stock" | "supplier"
       order_status:
         | "new"
@@ -548,6 +587,7 @@ export const Constants = {
         "hr",
         "warehouse",
       ],
+      doc_kind: ["supplier_invoice", "payment_order"],
       item_source: ["stock", "supplier"],
       order_status: [
         "new",
