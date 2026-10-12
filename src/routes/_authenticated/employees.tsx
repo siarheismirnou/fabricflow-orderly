@@ -60,7 +60,41 @@ function Employees() {
 
   return (
     <div>
-      <PageHeader title="Сотрудники" subtitle="Назначение ролей и доступов. Новые сотрудники появляются здесь после регистрации." />
+      <PageHeader
+        title="Сотрудники"
+        subtitle="Супер-админ приглашает сотрудников по email — им приходит письмо для подтверждения. После входа назначьте им роли ниже."
+        actions={
+          isAdmin ? (
+            <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+              <DialogTrigger asChild>
+                <Button><UserPlus className="mr-2 h-4 w-4" />Пригласить сотрудника</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader><DialogTitle>Пригласить сотрудника</DialogTitle></DialogHeader>
+                <form
+                  className="space-y-4"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    invite.mutate();
+                  }}
+                >
+                  <div className="space-y-2">
+                    <Label htmlFor="inv-name">Имя и фамилия</Label>
+                    <Input id="inv-name" value={inviteName} onChange={(e) => setInviteName(e.target.value)} required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="inv-email">Email</Label>
+                    <Input id="inv-email" type="email" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} required />
+                  </div>
+                  <Button type="submit" className="w-full" disabled={invite.isPending}>
+                    {invite.isPending ? "Отправка…" : "Отправить приглашение"}
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
+          ) : undefined
+        }
+      />
       <div className="rounded-lg border bg-card">
         <Table>
           <TableHeader><TableRow><TableHead>Сотрудник</TableHead>{ALL_ROLES.map((r) => <TableHead key={r} className="text-center">{ROLE_LABELS[r]}</TableHead>)}</TableRow></TableHeader>
