@@ -2,12 +2,19 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 import { hasAny, useMe } from "@/lib/auth";
 import { ROLE_LABELS, type AppRole } from "@/lib/domain";
+import { inviteEmployee } from "@/lib/employees.functions";
 import { useProfiles } from "@/lib/queries";
 import { PageHeader } from "@/components/PageHeader";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { UserPlus } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/employees")({
   head: () => ({ meta: [{ title: "Сотрудники — Ткани" }, { name: "description", content: "Сотрудники и их роли" }, { property: "og:title", content: "Сотрудники — Ткани" }, { property: "og:description", content: "Сотрудники и их роли" }] }),
@@ -25,6 +32,19 @@ function Employees() {
     queryFn: async () => (await supabase.from("user_roles").select("*")).data ?? [],
   });
   const isAdmin = me?.roles.includes("super_admin");
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteName, setInviteName] = useState("");
+  const invite = useMutation({
+    mutationFn: () => inviteEmployee({ data: { email: inviteEmail, fullName: inviteName } }),
+    onSuccess: () => {
+      toast.success("Приглашение отправлено на почту сотрудника");
+      setInviteOpen(false);
+      setInviteEmail("");
+      setInviteName("");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
   const toggle = useMutation({
     mutationFn: async ({ user_id, role, on }: { user_id: string; role: AppRole; on: boolean }) => {
       const { error } = on
@@ -40,7 +60,41 @@ function Employees() {
 
   return (
     <div>
-      <PageHeader title="Сотрудники" subtitle="Назначение ролей и доступов. Новые сотрудники появляются здесь после регистрации." />
+      <PageHeader
+        title="Сотрудники"
+        subtitle="Супер-админ приглашает сотрудников по email — им приходит письмо для подтверждения. После входа назначьте им роли ниже."
+        actions={
+          isAdmin ? (
+            <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+              <DialogTrigger asChild>
+                <Button><UserPlus className="mr-2 h-4 w-4" />Пригласить сотрудника</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader><DialogTitle>Пригласить сотрудника</DialogTitle></DialogHeader>
+                <form
+                  className="space-y-4"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    invite.mutate();
+                  }}
+                >
+                  <div className="space-y-2">
+                    <Label htmlFor="inv-name">Имя и фамилия</Label>
+                    <Input id="inv-name" value={inviteName} onChange={(e) => setInviteName(e.target.value)} required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="inv-email">Email</Label>
+                    <Input id="inv-email" type="email" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} required />
+                  </div>
+                  <Button type="submit" className="w-full" disabled={invite.isPending}>
+                    {invite.isPending ? "Отправка…" : "Отправить приглашение"}
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
+          ) : undefined
+        }
+      />
       <div className="rounded-lg border bg-card">
         <Table>
           <TableHeader><TableRow><TableHead>Сотрудник</TableHead>{ALL_ROLES.map((r) => <TableHead key={r} className="text-center">{ROLE_LABELS[r]}</TableHead>)}</TableRow></TableHeader>
