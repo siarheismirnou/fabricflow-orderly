@@ -32,6 +32,19 @@ function Employees() {
     queryFn: async () => (await supabase.from("user_roles").select("*")).data ?? [],
   });
   const isAdmin = me?.roles.includes("super_admin");
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteName, setInviteName] = useState("");
+  const invite = useMutation({
+    mutationFn: () => inviteEmployee({ data: { email: inviteEmail, fullName: inviteName } }),
+    onSuccess: () => {
+      toast.success("Приглашение отправлено на почту сотрудника");
+      setInviteOpen(false);
+      setInviteEmail("");
+      setInviteName("");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
   const toggle = useMutation({
     mutationFn: async ({ user_id, role, on }: { user_id: string; role: AppRole; on: boolean }) => {
       const { error } = on
