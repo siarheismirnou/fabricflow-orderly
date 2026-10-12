@@ -2,12 +2,19 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 import { hasAny, useMe } from "@/lib/auth";
 import { ROLE_LABELS, type AppRole } from "@/lib/domain";
+import { inviteEmployee } from "@/lib/employees.functions";
 import { useProfiles } from "@/lib/queries";
 import { PageHeader } from "@/components/PageHeader";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { UserPlus } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/employees")({
   head: () => ({ meta: [{ title: "Сотрудники — Ткани" }, { name: "description", content: "Сотрудники и их роли" }, { property: "og:title", content: "Сотрудники — Ткани" }, { property: "og:description", content: "Сотрудники и их роли" }] }),
