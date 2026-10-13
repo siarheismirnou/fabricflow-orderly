@@ -20,6 +20,7 @@ export function statusTone(s: OrderStatus) {
 type OrderRow = ReturnType<typeof useOrders>["data"] extends (infer T)[] | undefined ? T : never;
 
 function Orders() {
+  const navigate = useNavigate();
   const { data: me } = useMe();
   const { data: orders = [] } = useOrders();
   const { data: profiles = [] } = useProfiles();
