@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Plus, LayoutList, Columns3 } from "lucide-react";
 import { useMe, hasAny } from "@/lib/auth";
@@ -20,6 +20,7 @@ export function statusTone(s: OrderStatus) {
 type OrderRow = ReturnType<typeof useOrders>["data"] extends (infer T)[] | undefined ? T : never;
 
 function Orders() {
+  const navigate = useNavigate();
   const { data: me } = useMe();
   const { data: orders = [] } = useOrders();
   const { data: profiles = [] } = useProfiles();
@@ -62,7 +63,7 @@ function Orders() {
             <TableHeader><TableRow><TableHead>№</TableHead><TableHead>Дата</TableHead><TableHead>Клиент</TableHead><TableHead>Менеджер</TableHead><TableHead>Позиций</TableHead><TableHead>Статус</TableHead><TableHead className="text-right">Сумма</TableHead></TableRow></TableHeader>
             <TableBody>
               {rows.map((o) => (
-                <TableRow key={o.id} className="cursor-pointer">
+                <TableRow key={o.id} className="cursor-pointer" onClick={() => navigate({ to: "/orders/$id", params: { id: o.id } })}>
                   <TableCell><Link to="/orders/$id" params={{ id: o.id }} className="font-semibold text-primary underline-offset-4 hover:underline">№{o.number}</Link></TableCell>
                   <TableCell>{new Date(o.created_at).toLocaleDateString("ru-RU")}</TableCell>
                   <TableCell>{o.clients?.name}</TableCell>
