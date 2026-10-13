@@ -63,7 +63,7 @@ function Orders() {
             <TableHeader><TableRow><TableHead>№</TableHead><TableHead>Дата</TableHead><TableHead>Клиент</TableHead><TableHead>Менеджер</TableHead><TableHead>Позиций</TableHead><TableHead>Статус</TableHead><TableHead className="text-right">Сумма</TableHead></TableRow></TableHeader>
             <TableBody>
               {rows.map((o) => (
-                <TableRow key={o.id} className="cursor-pointer">
+                <TableRow key={o.id} className="cursor-pointer" onClick={() => navigate({ to: "/orders/$id", params: { id: o.id } })}>
                   <TableCell><Link to="/orders/$id" params={{ id: o.id }} className="font-semibold text-primary underline-offset-4 hover:underline">№{o.number}</Link></TableCell>
                   <TableCell>{new Date(o.created_at).toLocaleDateString("ru-RU")}</TableCell>
                   <TableCell>{o.clients?.name}</TableCell>
