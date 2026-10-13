@@ -7,6 +7,7 @@ import { useMe } from "@/lib/auth";
 import { useProfiles } from "@/lib/queries";
 import { STATUS_FLOW, STATUS_LABELS, canMoveTo, meters, nextStatus, rub, type OrderStatus } from "@/lib/domain";
 import { PageHeader } from "@/components/PageHeader";
+import { OrderDocuments } from "@/components/OrderDocuments";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
@@ -108,6 +109,7 @@ function OrderPage() {
           </ul>
         </div>
       </div>
+      <OrderDocuments orderId={id} status={order.status} roles={roles} userId={me?.id} />
     </div>
   );
 }
