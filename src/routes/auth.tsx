@@ -71,6 +71,11 @@ function AuthPage() {
               <Field label="Email"><Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></Field>
               <Field label="Пароль"><Input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} /></Field>
               <Button className="w-full" disabled={busy}>Войти</Button>
+              <button type="button" className="w-full text-center text-sm text-muted-foreground hover:text-foreground" onClick={async () => {
+                if (!email) { toast.error("Введите email"); return; }
+                const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/reset-password` });
+                if (error) toast.error(error.message); else toast.success("Письмо для смены пароля отправлено");
+              }}>Забыли пароль?</button>
             </form>
           </TabsContent>
           <TabsContent value="up">
