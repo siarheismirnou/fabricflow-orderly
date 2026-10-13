@@ -14,7 +14,7 @@ const CFG: Record<Kind, { title: string; roles: AppRole[]; from: OrderStatus }> 
   payment_order: { title: "Платёжное поручение", roles: ["super_admin", "accountant"], from: "awaiting_payment" },
 };
 
-export function OrderDocuments({ orderId, status, roles, userId }: { orderId: string; status: OrderStatus; roles: AppRole[]; userId?: string }) {
+export function OrderDocuments({ orderId, status, roles, userId }: { orderId: string; status: OrderStatus; roles: AppRole[]; userId?: string | undefined }) {
   const qc = useQueryClient();
   const { data: docs = [] } = useQuery({
     queryKey: ["order-docs", orderId],
@@ -41,7 +41,7 @@ export function OrderDocuments({ orderId, status, roles, userId }: { orderId: st
 
 function DocBlock({ kind, orderId, docs, canUpload, isAdmin, userId, onChange }: {
   kind: Kind; orderId: string; docs: { id: string; file_path: string; file_name: string; uploaded_by: string | null; created_at: string }[];
-  canUpload: boolean; isAdmin: boolean; userId?: string; onChange: () => void;
+  canUpload: boolean; isAdmin: boolean; userId?: string | undefined; onChange: () => void;
 }) {
   const input = useRef<HTMLInputElement>(null);
   const upload = useMutation({
@@ -67,7 +67,7 @@ function DocBlock({ kind, orderId, docs, canUpload, isAdmin, userId, onChange }:
   });
   const open = async (path: string) => {
     const { data, error } = await supabase.storage.from("order-documents").createSignedUrl(path, 300);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     window.open(data.signedUrl, "_blank");
   };
 
