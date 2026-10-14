@@ -21,7 +21,7 @@ const NAV: { to: "/dashboard" | "/orders" | "/warehouse" | "/clients" | "/suppli
   { to: "/warehouse", label: "Склад", icon: Boxes },
   { to: "/clients", label: "Клиенты", icon: Users },
   { to: "/suppliers", label: "Поставщики", icon: Truck },
-  { to: "/employees", label: "Сотрудники", icon: UserCog, roles: ["hr"] },
+  { to: "/employees", label: "Сотрудники", icon: UserCog, roles: ["super_admin"] },
 ];
 
 function Layout() {

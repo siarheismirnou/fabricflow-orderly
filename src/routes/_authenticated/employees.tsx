@@ -5,7 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { hasAny, useMe } from "@/lib/auth";
 import { ROLE_LABELS, type AppRole } from "@/lib/domain";
-import { inviteEmployee } from "@/lib/employees.functions";
+import { createEmployee } from "@/lib/employees.functions";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useProfiles } from "@/lib/queries";
 import { PageHeader } from "@/components/PageHeader";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -21,7 +22,8 @@ export const Route = createFileRoute("/_authenticated/employees")({
   component: Employees,
 });
 
-const ALL_ROLES = Object.keys(ROLE_LABELS) as AppRole[];
+const ALL_ROLES: AppRole[] = ["super_admin", "sales_manager", "accountant"];
+type NewRole = "super_admin" | "sales_manager" | "accountant";
 
 function Employees() {
   const qc = useQueryClient();
@@ -35,13 +37,17 @@ function Employees() {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteName, setInviteName] = useState("");
+  const [inviteRole, setInviteRole] = useState<NewRole>("sales_manager");
+  const [created, setCreated] = useState<{ email: string; password: string } | null>(null);
   const invite = useMutation({
-    mutationFn: () => inviteEmployee({ data: { email: inviteEmail, fullName: inviteName } }),
-    onSuccess: () => {
-      toast.success("Приглашение отправлено на почту сотрудника");
-      setInviteOpen(false);
+    mutationFn: () => createEmployee({ data: { email: inviteEmail, fullName: inviteName, role: inviteRole } }),
+    onSuccess: (r) => {
+      toast.success("Сотрудник добавлен");
+      setCreated({ email: inviteEmail, password: r.password });
       setInviteEmail("");
       setInviteName("");
+      qc.invalidateQueries({ queryKey: ["all-roles"] });
+      qc.invalidateQueries({ queryKey: ["profiles"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -56,28 +62,32 @@ function Employees() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  if (!hasAny(me?.roles, ["hr"])) return <p className="text-muted-foreground">Раздел доступен супер-админу и специалисту по кадрам.</p>;
+  if (!isAdmin) return <p className="text-muted-foreground">Раздел доступен только супер-админу.</p>;
 
   return (
     <div>
       <PageHeader
         title="Сотрудники"
-        subtitle="Супер-админ приглашает сотрудников по email — им приходит письмо для подтверждения. После входа назначьте им роли ниже."
+        subtitle="Супер-админ добавляет сотрудника, выбирает роль и получает пароль для первого входа."
         actions={
-          isAdmin ? (
-            <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
-              <DialogTrigger asChild>
-                <Button><UserPlus className="mr-2 h-4 w-4" />Пригласить сотрудника</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader><DialogTitle>Пригласить сотрудника</DialogTitle></DialogHeader>
-                <form
-                  className="space-y-4"
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    invite.mutate();
-                  }}
-                >
+          <Dialog open={inviteOpen} onOpenChange={(o) => { setInviteOpen(o); if (!o) setCreated(null); }}>
+            <DialogTrigger asChild>
+              <Button><UserPlus className="mr-2 h-4 w-4" />Добавить сотрудника</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader><DialogTitle>Добавить сотрудника</DialogTitle></DialogHeader>
+              {created ? (
+                <div className="space-y-3 text-sm">
+                  <p>Сотрудник создан. Данные для первого входа:</p>
+                  <div className="rounded-md border bg-muted p-3 font-mono">
+                    <div>{created.email}</div>
+                    <div>{created.password}</div>
+                  </div>
+                  <Button className="w-full" onClick={() => { navigator.clipboard.writeText(`Email: ${created.email}\nПароль: ${created.password}`); toast.success("Скопировано"); }}>Скопировать</Button>
+                  <Button variant="outline" className="w-full" onClick={() => setCreated(null)}>Добавить ещё</Button>
+                </div>
+              ) : (
+                <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); invite.mutate(); }}>
                   <div className="space-y-2">
                     <Label htmlFor="inv-name">Имя и фамилия</Label>
                     <Input id="inv-name" value={inviteName} onChange={(e) => setInviteName(e.target.value)} required />
@@ -86,13 +96,22 @@ function Employees() {
                     <Label htmlFor="inv-email">Email</Label>
                     <Input id="inv-email" type="email" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} required />
                   </div>
+                  <div className="space-y-2">
+                    <Label>Роль</Label>
+                    <Select value={inviteRole} onValueChange={(v) => setInviteRole(v as NewRole)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {ALL_ROLES.map((r) => <SelectItem key={r} value={r}>{ROLE_LABELS[r]}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <Button type="submit" className="w-full" disabled={invite.isPending}>
-                    {invite.isPending ? "Отправка…" : "Отправить приглашение"}
+                    {invite.isPending ? "Создание…" : "Создать сотрудника"}
                   </Button>
                 </form>
-              </DialogContent>
-            </Dialog>
-          ) : undefined
+              )}
+            </DialogContent>
+          </Dialog>
         }
       />
       <div className="rounded-lg border bg-card">
