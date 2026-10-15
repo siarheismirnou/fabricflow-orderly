@@ -61,7 +61,7 @@ function Layout() {
     <div className="flex min-h-screen">
       <aside className="sticky top-0 flex h-screen w-60 shrink-0 flex-col bg-sidebar text-sidebar-foreground">
         <div className="px-5 py-6">
-          <div className="font-display text-2xl font-semibold">Ткани</div>
+          <div className="font-display text-2xl font-semibold">Designtex</div>
           <div className="text-xs opacity-70">учёт и продажи</div>
         </div>
         <nav className="flex-1 space-y-1 px-3">
