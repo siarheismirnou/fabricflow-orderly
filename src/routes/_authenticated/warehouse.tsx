@@ -234,7 +234,7 @@ function EditRowDialog({ title, table, row, fields, invalidate }: {
     mutationFn: async () => {
       const patch: Record<string, unknown> = {};
       for (const f of fields) patch[f.key] = f.type === "number" ? (v[f.key] === "" ? null : Number(v[f.key])) : (v[f.key] || null);
-      const { error } = await supabase.from(table).update(patch as never).eq("id", row.id as string);
+      const { error } = await supabase.from(table).update(patch as never).eq("id", row["id"] as string);
       if (error) throw error;
     },
     onSuccess: () => { toast.success("Сохранено"); setOpen(false); refresh(); },
@@ -242,7 +242,7 @@ function EditRowDialog({ title, table, row, fields, invalidate }: {
   });
   const del = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from(table).delete().eq("id", row.id as string);
+      const { error } = await supabase.from(table).delete().eq("id", row["id"] as string);
       if (error) throw new Error(error.code === "23503" ? "Нельзя удалить: позиция используется в заказах или партиях" : error.message);
     },
     onSuccess: () => { toast.success("Удалено"); setOpen(false); refresh(); },
