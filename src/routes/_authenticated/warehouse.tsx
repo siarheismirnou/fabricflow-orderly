@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { PackagePlus, Plus, Search } from "lucide-react";
+import { PackagePlus, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { hasAny, useMe } from "@/lib/auth";
 import { meters, rub } from "@/lib/domain";
@@ -24,6 +24,7 @@ export const Route = createFileRoute("/_authenticated/warehouse")({
 function Warehouse() {
   const { data: me } = useMe();
   const canEdit = hasAny(me?.roles, ["warehouse"]);
+  const isAdmin = !!me?.roles.includes("super_admin");
   const { data: lots = [] } = useLots();
   const { data: products = [] } = useProducts();
   const [q, setQ] = useState("");
@@ -78,6 +79,7 @@ function Warehouse() {
                   <TableHead>Дата прихода</TableHead><TableHead>Артикул</TableHead><TableHead>Ткань</TableHead><TableHead>Поставщик</TableHead>
                   <TableHead className="text-right">Пришло</TableHead><TableHead className="text-right">Осталось</TableHead>
                   <TableHead className="text-right">Цена прихода, м</TableHead><TableHead className="text-right">Цена продажи, м</TableHead>
+                  {isAdmin && <TableHead />}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -91,6 +93,7 @@ function Warehouse() {
                     <TableCell className="text-right font-semibold">{meters(Number(l.remaining_meters))}</TableCell>
                     <TableCell className="text-right">{rub(Number(l.purchase_price))}</TableCell>
                     <TableCell className="text-right">{rub(Number(l.products?.sale_price))}</TableCell>
+                    {isAdmin && <TableCell className="w-10"><EditRowDialog title="Редактировать партию" table="stock_receipts" row={l} fields={LOT_FIELDS} invalidate={["lots"]} /></TableCell>}
                   </TableRow>
                 ))}
               </TableBody>
@@ -112,10 +115,11 @@ function Warehouse() {
         <TabsContent value="catalog">
           <div className="rounded-lg border bg-card">
             <Table>
-              <TableHeader><TableRow><TableHead>Артикул</TableHead><TableHead>Название</TableHead><TableHead>Состав</TableHead><TableHead>Цвет</TableHead><TableHead>Ширина</TableHead><TableHead className="text-right">Цена продажи, м</TableHead></TableRow></TableHeader>
+              <TableHeader><TableRow><TableHead>Артикул</TableHead><TableHead>Название</TableHead><TableHead>Состав</TableHead><TableHead>Цвет</TableHead><TableHead>Ширина</TableHead><TableHead className="text-right">Цена продажи, м</TableHead>{isAdmin && <TableHead />}</TableRow></TableHeader>
               <TableBody>
                 {products.map((p) => (
-                  <TableRow key={p.id}><TableCell className="font-mono text-xs">{p.sku}</TableCell><TableCell className="font-semibold">{p.name}</TableCell><TableCell>{p.composition}</TableCell><TableCell>{p.color}</TableCell><TableCell>{p.width_cm ? `${p.width_cm} см` : "—"}</TableCell><TableCell className="text-right">{rub(Number(p.sale_price))}</TableCell></TableRow>
+                  <TableRow key={p.id}><TableCell className="font-mono text-xs">{p.sku}</TableCell><TableCell className="font-semibold">{p.name}</TableCell><TableCell>{p.composition}</TableCell><TableCell>{p.color}</TableCell><TableCell>{p.width_cm ? `${p.width_cm} см` : "—"}</TableCell><TableCell className="text-right">{rub(Number(p.sale_price))}</TableCell>
+                    {isAdmin && <TableCell className="w-10"><EditRowDialog title="Редактировать товар" table="products" row={p} fields={PRODUCT_FIELDS} invalidate={["products", "lots"]} /></TableCell>}</TableRow>
                 ))}
               </TableBody>
             </Table>
@@ -215,3 +219,61 @@ function ProductDialog() {
     </Dialog>
   );
 }
+
+type Field = { key: string; label: string; type?: "number" | "text" };
+
+function EditRowDialog({ title, table, row, fields, invalidate }: {
+  title: string; table: "products" | "stock_receipts"; row: Record<string, unknown>; fields: Field[]; invalidate: string[];
+}) {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const init = () => Object.fromEntries(fields.map((f) => [f.key, row[f.key] == null ? "" : String(row[f.key])]));
+  const [v, setV] = useState<Record<string, string>>(init);
+  const refresh = () => invalidate.forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+  const save = useMutation({
+    mutationFn: async () => {
+      const patch: Record<string, unknown> = {};
+      for (const f of fields) patch[f.key] = f.type === "number" ? (v[f.key] === "" ? null : Number(v[f.key])) : (v[f.key] || null);
+      const { error } = await supabase.from(table).update(patch as never).eq("id", row.id as string);
+      if (error) throw error;
+    },
+    onSuccess: () => { toast.success("Сохранено"); setOpen(false); refresh(); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const del = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from(table).delete().eq("id", row.id as string);
+      if (error) throw new Error(error.code === "23503" ? "Нельзя удалить: позиция используется в заказах или партиях" : error.message);
+    },
+    onSuccess: () => { toast.success("Удалено"); setOpen(false); refresh(); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  return (
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) setV(init()); }}>
+      <DialogTrigger asChild><Button size="icon" variant="ghost" aria-label="Редактировать"><Pencil className="h-4 w-4" /></Button></DialogTrigger>
+      <DialogContent>
+        <DialogHeader><DialogTitle>{title}</DialogTitle></DialogHeader>
+        <form className="grid grid-cols-2 gap-3" onSubmit={(e) => { e.preventDefault(); save.mutate(); }}>
+          {fields.map((f) => (
+            <div key={f.key} className="space-y-1.5"><Label>{f.label}</Label>
+              <Input type={f.type ?? "text"} step={f.type === "number" ? "0.01" : undefined} value={v[f.key]} onChange={(e) => setV({ ...v, [f.key]: e.target.value })} />
+            </div>
+          ))}
+          <Button type="button" variant="destructive" disabled={del.isPending} onClick={() => { if (confirm("Удалить позицию?")) del.mutate(); }}>
+            <Trash2 className="mr-1 h-4 w-4" /> Удалить
+          </Button>
+          <Button disabled={save.isPending}>Сохранить</Button>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+const PRODUCT_FIELDS: Field[] = [
+  { key: "sku", label: "Артикул" }, { key: "name", label: "Название" }, { key: "composition", label: "Состав" },
+  { key: "color", label: "Цвет" }, { key: "width_cm", label: "Ширина, см", type: "number" }, { key: "sale_price", label: "Цена продажи за м, ₽", type: "number" },
+];
+const LOT_FIELDS: Field[] = [
+  { key: "meters", label: "Пришло, м", type: "number" }, { key: "remaining_meters", label: "Осталось, м", type: "number" },
+  { key: "purchase_price", label: "Цена прихода за м, ₽", type: "number" }, { key: "note", label: "Комментарий" },
+];
