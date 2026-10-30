@@ -15,6 +15,13 @@
       "when": 1791803028896,
       "tag": "0001_order_documents",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793359799993,
+      "tag": "0002_admin_only_costs",
+      "breakpoints": true
     }
   ]
 }

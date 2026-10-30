@@ -262,8 +262,10 @@ export type Database = {
         Row: {
           color: string | null
           composition: string | null
+          cost_price: number
           created_at: string
           id: string
+          margin_percent: number | null
           name: string
           sale_price: number
           sku: string
@@ -272,8 +274,10 @@ export type Database = {
         Insert: {
           color?: string | null
           composition?: string | null
+          cost_price?: number
           created_at?: string
           id?: string
+          margin_percent?: number | null
           name: string
           sale_price?: number
           sku: string
@@ -282,8 +286,10 @@ export type Database = {
         Update: {
           color?: string | null
           composition?: string | null
+          cost_price?: number
           created_at?: string
           id?: string
+          margin_percent?: number | null
           name?: string
           sale_price?: number
           sku?: string
@@ -416,6 +422,31 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_product_costs: {
+        Args: never
+        Returns: {
+          cost_price: number
+          id: string
+          margin_percent: number
+        }[]
+      }
+      admin_receipt_costs: {
+        Args: never
+        Returns: {
+          id: string
+          product_id: string
+          purchase_price: number
+          remaining_meters: number
+        }[]
+      }
+      admin_set_product_pricing: {
+        Args: { _cost: number; _id: string; _margin: number; _sale: number }
+        Returns: undefined
+      }
+      admin_set_receipt_cost: {
+        Args: { _id: string; _price: number }
+        Returns: undefined
+      }
       has_any_role: {
         Args: {
           _roles: Database["public"]["Enums"]["app_role"][]
