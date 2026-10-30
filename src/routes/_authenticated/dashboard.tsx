@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Bar, BarChart, CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
-import { useLots, useOrders, useProfiles } from "@/lib/queries";
+import { useLots, useOrders, useProfiles, useReceiptCosts } from "@/lib/queries";
+import { useMe } from "@/lib/auth";
 import { byManager, salesTimeline, soldOrders, topProducts, type Period, type ReportOrder } from "@/lib/reports";
 import { meters, rub } from "@/lib/domain";
 import { PageHeader } from "@/components/PageHeader";
@@ -20,6 +21,15 @@ const stockCfg = { left: { label: "Остаток, м", color: "var(--chart-1)" 
 const topCfg = { meters: { label: "Продано, м", color: "var(--chart-2)" } } satisfies ChartConfig;
 
 function Dashboard() {
+  const { data: me, isLoading } = useMe();
+  if (isLoading) return null;
+  if (!me?.roles.includes("super_admin"))
+    return <div className="rounded-lg border bg-card p-8 text-center"><h2 className="text-xl font-semibold">Нет доступа</h2><p className="mt-2 text-sm text-muted-foreground">Финансовая аналитика доступна только супер-админу.</p></div>;
+  return <DashboardInner />;
+}
+
+function DashboardInner() {
+  const { data: costs } = useReceiptCosts(true);
   const { data: orders = [] } = useOrders();
   const { data: lots = [] } = useLots();
   const { data: profiles = [] } = useProfiles();
@@ -36,11 +46,11 @@ function Dashboard() {
     for (const l of lots) {
       const c = m.get(l.product_id) ?? { name: `${l.products?.sku} ${l.products?.name}`, left: 0, value: 0 };
       c.left += Number(l.remaining_meters);
-      c.value += Number(l.remaining_meters) * Number(l.purchase_price);
+      c.value += Number(l.remaining_meters) * Number(costs?.get(l.id)?.purchase_price ?? 0);
       m.set(l.product_id, c);
     }
     return [...m.values()].sort((a, b) => b.left - a.left);
-  }, [lots]);
+  }, [lots, costs]);
 
   const revenue = sold.reduce((s, o) => s + Number(o.total), 0);
   const soldM = sold.reduce((s, o) => s + o.order_items.reduce((a, i) => a + Number(i.meters), 0), 0);

@@ -6,7 +6,8 @@ import { PackagePlus, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { hasAny, useMe } from "@/lib/auth";
 import { meters, rub } from "@/lib/domain";
-import { useLots, useProducts, useSuppliers } from "@/lib/queries";
+import { useLots, useProductCosts, useProducts, useReceiptCosts, useSuppliers } from "@/lib/queries";
+import { marginFromSale, saleFromMargin } from "@/lib/pricing";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +26,9 @@ function Warehouse() {
   const { data: me } = useMe();
   const canEdit = hasAny(me?.roles, ["warehouse"]);
   const isAdmin = !!me?.roles.includes("super_admin");
+  const { data: rc } = useReceiptCosts(isAdmin);
+  const { data: pc } = useProductCosts(isAdmin);
+  const lotCost = (id: string) => Number(rc?.get(id)?.purchase_price ?? 0);
   const { data: lots = [] } = useLots();
   const { data: products = [] } = useProducts();
   const [q, setQ] = useState("");
@@ -41,11 +45,11 @@ function Warehouse() {
       const k = l.product_id;
       const cur = byProduct.get(k) ?? { sku: l.products?.sku ?? "", name: l.products?.name ?? "", left: 0, value: 0 };
       cur.left += Number(l.remaining_meters);
-      cur.value += Number(l.remaining_meters) * Number(l.purchase_price);
+      cur.value += Number(l.remaining_meters) * lotCost(l.id);
       byProduct.set(k, cur);
     }
     return [...byProduct.values()].sort((a, b) => b.left - a.left);
-  }, [lots]);
+  }, [lots, rc]);
   const totalLeft = totals.reduce((s, t) => s + t.left, 0);
   const totalValue = totals.reduce((s, t) => s + t.value, 0);
 
@@ -53,8 +57,8 @@ function Warehouse() {
     <div>
       <PageHeader
         title="Склад"
-        subtitle={`Всего на складе ${meters(totalLeft)} на сумму ${rub(totalValue)} (по цене прихода)`}
-        actions={canEdit && (<><ProductDialog /><ReceiptDialog products={products} /></>)}
+        subtitle={isAdmin ? `Всего на складе ${meters(totalLeft)} на сумму ${rub(totalValue)} (по себестоимости)` : `Всего на складе ${meters(totalLeft)}`}
+        actions={canEdit && (<><ProductDialog isAdmin={isAdmin} /><ReceiptDialog products={products} isAdmin={isAdmin} /></>)}
       />
       <Tabs defaultValue="lots">
         <TabsList>
@@ -78,7 +82,7 @@ function Warehouse() {
                 <TableRow>
                   <TableHead>Дата прихода</TableHead><TableHead>Артикул</TableHead><TableHead>Ткань</TableHead><TableHead>Поставщик</TableHead>
                   <TableHead className="text-right">Пришло</TableHead><TableHead className="text-right">Осталось</TableHead>
-                  <TableHead className="text-right">Цена прихода, м</TableHead><TableHead className="text-right">Цена продажи, м</TableHead>
+                  {isAdmin && <TableHead className="text-right">Себестоимость, м</TableHead>}<TableHead className="text-right">Цена продажи, м</TableHead>
                   {isAdmin && <TableHead />}
                 </TableRow>
               </TableHeader>
@@ -91,9 +95,9 @@ function Warehouse() {
                     <TableCell>{l.suppliers?.name ?? "—"}</TableCell>
                     <TableCell className="text-right">{meters(Number(l.meters))}</TableCell>
                     <TableCell className="text-right font-semibold">{meters(Number(l.remaining_meters))}</TableCell>
-                    <TableCell className="text-right">{rub(Number(l.purchase_price))}</TableCell>
+                    {isAdmin && <TableCell className="text-right">{rub(lotCost(l.id))}</TableCell>}
                     <TableCell className="text-right">{rub(Number(l.products?.sale_price))}</TableCell>
-                    {isAdmin && <TableCell className="w-10"><EditRowDialog title="Редактировать партию" table="stock_receipts" row={l} fields={LOT_FIELDS} invalidate={["lots"]} /></TableCell>}
+                    {isAdmin && <TableCell className="w-10"><EditRowDialog title="Редактировать партию" table="stock_receipts" row={{ ...l, purchase_price: lotCost(l.id) }} fields={LOT_FIELDS} invalidate={["lots", "receipt-costs"]} /></TableCell>}
                   </TableRow>
                 ))}
               </TableBody>
@@ -103,10 +107,10 @@ function Warehouse() {
         <TabsContent value="totals">
           <div className="rounded-lg border bg-card">
             <Table>
-              <TableHeader><TableRow><TableHead>Артикул</TableHead><TableHead>Ткань</TableHead><TableHead className="text-right">Остаток</TableHead><TableHead className="text-right">Стоимость остатка</TableHead></TableRow></TableHeader>
+              <TableHeader><TableRow><TableHead>Артикул</TableHead><TableHead>Ткань</TableHead><TableHead className="text-right">Остаток</TableHead>{isAdmin && <TableHead className="text-right">Стоимость остатка</TableHead>}</TableRow></TableHeader>
               <TableBody>
                 {totals.map((t) => (
-                  <TableRow key={t.sku}><TableCell className="font-mono text-xs">{t.sku}</TableCell><TableCell>{t.name}</TableCell><TableCell className="text-right font-semibold">{meters(t.left)}</TableCell><TableCell className="text-right">{rub(t.value)}</TableCell></TableRow>
+                  <TableRow key={t.sku}><TableCell className="font-mono text-xs">{t.sku}</TableCell><TableCell>{t.name}</TableCell><TableCell className="text-right font-semibold">{meters(t.left)}</TableCell>{isAdmin && <TableCell className="text-right">{rub(t.value)}</TableCell>}</TableRow>
                 ))}
               </TableBody>
             </Table>
@@ -115,11 +119,11 @@ function Warehouse() {
         <TabsContent value="catalog">
           <div className="rounded-lg border bg-card">
             <Table>
-              <TableHeader><TableRow><TableHead>Артикул</TableHead><TableHead>Название</TableHead><TableHead>Состав</TableHead><TableHead>Цвет</TableHead><TableHead>Ширина</TableHead><TableHead className="text-right">Цена продажи, м</TableHead>{isAdmin && <TableHead />}</TableRow></TableHeader>
+              <TableHeader><TableRow><TableHead>Артикул</TableHead><TableHead>Название</TableHead><TableHead>Состав</TableHead><TableHead>Цвет</TableHead><TableHead>Ширина</TableHead>{isAdmin && <><TableHead className="text-right">Себестоимость, м</TableHead><TableHead className="text-right">Маржа</TableHead></>}<TableHead className="text-right">Цена продажи, м</TableHead>{isAdmin && <TableHead />}</TableRow></TableHeader>
               <TableBody>
                 {products.map((p) => (
-                  <TableRow key={p.id}><TableCell className="font-mono text-xs">{p.sku}</TableCell><TableCell className="font-semibold">{p.name}</TableCell><TableCell>{p.composition}</TableCell><TableCell>{p.color}</TableCell><TableCell>{p.width_cm ? `${p.width_cm} см` : "—"}</TableCell><TableCell className="text-right">{rub(Number(p.sale_price))}</TableCell>
-                    {isAdmin && <TableCell className="w-10"><EditRowDialog title="Редактировать товар" table="products" row={p} fields={PRODUCT_FIELDS} invalidate={["products", "lots"]} /></TableCell>}</TableRow>
+                  <TableRow key={p.id}><TableCell className="font-mono text-xs">{p.sku}</TableCell><TableCell className="font-semibold">{p.name}</TableCell><TableCell>{p.composition}</TableCell><TableCell>{p.color}</TableCell><TableCell>{p.width_cm ? `${p.width_cm} см` : "—"}</TableCell>{isAdmin && <><TableCell className="text-right">{rub(Number(pc?.get(p.id)?.cost_price ?? 0))}</TableCell><TableCell className="text-right">{pc?.get(p.id)?.margin_percent != null ? `${pc.get(p.id)!.margin_percent}%` : "—"}</TableCell></>}<TableCell className="text-right">{rub(Number(p.sale_price))}</TableCell>
+                    {isAdmin && <TableCell className="w-10"><EditRowDialog title="Редактировать товар" table="products" row={{ ...p, cost_price: pc?.get(p.id)?.cost_price ?? 0, margin_percent: pc?.get(p.id)?.margin_percent ?? null }} fields={PRODUCT_FIELDS} pricing invalidate={["products", "lots", "product-costs"]} /></TableCell>}</TableRow>
                 ))}
               </TableBody>
             </Table>
@@ -130,28 +134,32 @@ function Warehouse() {
   );
 }
 
-function ReceiptDialog({ products }: { products: { id: string; sku: string; name: string }[] }) {
+function ReceiptDialog({ products, isAdmin }: { products: { id: string; sku: string; name: string }[]; isAdmin: boolean }) {
   const qc = useQueryClient();
   const { data: suppliers = [] } = useSuppliers();
   const [open, setOpen] = useState(false);
   const [f, setF] = useState({ product_id: "", supplier_id: "", meters: "", purchase_price: "", note: "" });
   const m = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("stock_receipts").insert({
+      const { data, error } = await supabase.from("stock_receipts").insert({
         product_id: f.product_id,
         supplier_id: f.supplier_id || null,
         meters: Number(f.meters),
         remaining_meters: Number(f.meters),
-        purchase_price: Number(f.purchase_price),
         note: f.note || null,
-      });
+      }).select("id").single();
       if (error) throw error;
+      if (isAdmin && f.purchase_price) {
+        const { error: e2 } = await supabase.rpc("admin_set_receipt_cost", { _id: data.id, _price: Number(f.purchase_price) });
+        if (e2) throw e2;
+      }
     },
     onSuccess: () => {
       toast.success("Приход оформлен");
       setOpen(false);
       setF({ product_id: "", supplier_id: "", meters: "", purchase_price: "", note: "" });
       qc.invalidateQueries({ queryKey: ["lots"] });
+      qc.invalidateQueries({ queryKey: ["receipt-costs"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -175,7 +183,7 @@ function ReceiptDialog({ products }: { products: { id: string; sku: string; name
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5"><Label>Метров</Label><Input type="number" step="0.01" min="0.01" required value={f.meters} onChange={(e) => setF({ ...f, meters: e.target.value })} /></div>
-            <div className="space-y-1.5"><Label>Цена прихода за м, ₽</Label><Input type="number" step="0.01" min="0" required value={f.purchase_price} onChange={(e) => setF({ ...f, purchase_price: e.target.value })} /></div>
+            {isAdmin && <div className="space-y-1.5"><Label>Себестоимость за м, ₽</Label><Input type="number" step="0.01" min="0" value={f.purchase_price} onChange={(e) => setF({ ...f, purchase_price: e.target.value })} /></div>}
           </div>
           <div className="space-y-1.5"><Label>Комментарий</Label><Input value={f.note} onChange={(e) => setF({ ...f, note: e.target.value })} /></div>
           <Button className="w-full" disabled={m.isPending}>Принять на склад</Button>
@@ -185,19 +193,21 @@ function ReceiptDialog({ products }: { products: { id: string; sku: string; name
   );
 }
 
-function ProductDialog() {
+function ProductDialog({ isAdmin }: { isAdmin: boolean }) {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [f, setF] = useState({ sku: "", name: "", composition: "", color: "", width_cm: "", sale_price: "" });
+  const [f, setF] = useState({ sku: "", name: "", composition: "", color: "", width_cm: "" });
+  const [pr, setPr] = useState<PriceState>({ cost: "", margin: "", sale: "" });
   const m = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("products").insert({
+      const { data, error } = await supabase.from("products").insert({
         sku: f.sku, name: f.name, composition: f.composition || null, color: f.color || null,
-        width_cm: f.width_cm ? Number(f.width_cm) : null, sale_price: Number(f.sale_price || 0),
-      });
+        width_cm: f.width_cm ? Number(f.width_cm) : null,
+      }).select("id").single();
       if (error) throw error;
+      if (isAdmin) await savePricing(data.id, pr);
     },
-    onSuccess: () => { toast.success("Товар добавлен"); setOpen(false); qc.invalidateQueries({ queryKey: ["products"] }); },
+    onSuccess: () => { toast.success("Товар добавлен"); setOpen(false); qc.invalidateQueries({ queryKey: ["products"] }); qc.invalidateQueries({ queryKey: ["product-costs"] }); },
     onError: (e: Error) => toast.error(e.message),
   });
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => setF({ ...f, [k]: e.target.value });
@@ -212,7 +222,7 @@ function ProductDialog() {
           <div className="space-y-1.5"><Label>Состав</Label><Input value={f.composition} onChange={set("composition")} /></div>
           <div className="space-y-1.5"><Label>Цвет</Label><Input value={f.color} onChange={set("color")} /></div>
           <div className="space-y-1.5"><Label>Ширина, см</Label><Input type="number" value={f.width_cm} onChange={set("width_cm")} /></div>
-          <div className="space-y-1.5"><Label>Цена продажи за м, ₽</Label><Input type="number" required value={f.sale_price} onChange={set("sale_price")} /></div>
+          {isAdmin && <PricingFields v={pr} onChange={setPr} />}
           <Button className="col-span-2" disabled={m.isPending}>Сохранить</Button>
         </form>
       </DialogContent>
@@ -220,11 +230,37 @@ function ProductDialog() {
   );
 }
 
-type Field = { key: string; label: string; type?: "number" | "text" };
+type Field = { key: string; label: string; type?: "number" | "text"; rpc?: boolean };
+type PriceState = { cost: string; margin: string; sale: string };
 
-function EditRowDialog({ title, table, row, fields, invalidate }: {
-  title: string; table: "products" | "stock_receipts"; row: Record<string, unknown>; fields: Field[]; invalidate: string[];
+async function savePricing(id: string, p: PriceState) {
+  const { error } = await supabase.rpc("admin_set_product_pricing", {
+    _id: id, _cost: Number(p.cost || 0), _margin: p.margin === "" ? (null as unknown as number) : Number(p.margin), _sale: Number(p.sale || 0),
+  });
+  if (error) throw error;
+}
+
+/** Cost + margin % → sale price; editing sale price by hand recalculates margin. */
+function PricingFields({ v, onChange }: { v: PriceState; onChange: (v: PriceState) => void }) {
+  const fromMargin = (cost: string, margin: string) =>
+    onChange({ cost, margin, sale: cost !== "" && margin !== "" ? String(saleFromMargin(Number(cost), Number(margin))) : v.sale });
+  return (
+    <div className="col-span-2 grid grid-cols-3 gap-3 rounded-md border p-3">
+      <div className="space-y-1.5"><Label>Себестоимость, ₽/м</Label><Input type="number" step="0.01" min="0" value={v.cost} onChange={(e) => fromMargin(e.target.value, v.margin)} /></div>
+      <div className="space-y-1.5"><Label>Маржа, %</Label><Input type="number" step="0.01" value={v.margin} onChange={(e) => fromMargin(v.cost, e.target.value)} /></div>
+      <div className="space-y-1.5"><Label>Цена продажи, ₽/м</Label><Input type="number" step="0.01" min="0" required value={v.sale} onChange={(e) => {
+        const m = marginFromSale(Number(v.cost), Number(e.target.value));
+        onChange({ ...v, sale: e.target.value, margin: m == null ? v.margin : String(m) });
+      }} /></div>
+    </div>
+  );
+}
+
+function EditRowDialog({ title, table, row, fields, invalidate, pricing }: {
+  title: string; table: "products" | "stock_receipts"; row: Record<string, unknown>; fields: Field[]; invalidate: string[]; pricing?: boolean;
 }) {
+  const initPr = (): PriceState => ({ cost: String(row["cost_price"] ?? ""), margin: row["margin_percent"] == null ? "" : String(row["margin_percent"]), sale: String(row["sale_price"] ?? "") });
+  const [pr, setPr] = useState<PriceState>(initPr);
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const init = () => Object.fromEntries(fields.map((f) => [f.key, row[f.key] == null ? "" : String(row[f.key])]));
@@ -233,9 +269,15 @@ function EditRowDialog({ title, table, row, fields, invalidate }: {
   const save = useMutation({
     mutationFn: async () => {
       const patch: Record<string, unknown> = {};
-      for (const f of fields) patch[f.key] = f.type === "number" ? (v[f.key] === "" ? null : Number(v[f.key])) : (v[f.key] || null);
-      const { error } = await supabase.from(table).update(patch as never).eq("id", row["id"] as string);
+      for (const f of fields) if (!f.rpc) patch[f.key] = f.type === "number" ? (v[f.key] === "" ? null : Number(v[f.key])) : (v[f.key] || null);
+      const id = row["id"] as string;
+      const { error } = await supabase.from(table).update(patch as never).eq("id", id);
       if (error) throw error;
+      if (pricing) await savePricing(id, pr);
+      if (table === "stock_receipts") {
+        const { error: e2 } = await supabase.rpc("admin_set_receipt_cost", { _id: id, _price: Number(v["purchase_price"] || 0) });
+        if (e2) throw e2;
+      }
     },
     onSuccess: () => { toast.success("Сохранено"); setOpen(false); refresh(); },
     onError: (e: Error) => toast.error(e.message),
@@ -249,7 +291,7 @@ function EditRowDialog({ title, table, row, fields, invalidate }: {
     onError: (e: Error) => toast.error(e.message),
   });
   return (
-    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) setV(init()); }}>
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) { setV(init()); setPr(initPr()); } }}>
       <DialogTrigger asChild><Button size="icon" variant="ghost" aria-label="Редактировать"><Pencil className="h-4 w-4" /></Button></DialogTrigger>
       <DialogContent>
         <DialogHeader><DialogTitle>{title}</DialogTitle></DialogHeader>
@@ -259,6 +301,7 @@ function EditRowDialog({ title, table, row, fields, invalidate }: {
               <Input type={f.type ?? "text"} step={f.type === "number" ? "0.01" : undefined} value={v[f.key]} onChange={(e) => setV({ ...v, [f.key]: e.target.value })} />
             </div>
           ))}
+          {pricing && <PricingFields v={pr} onChange={setPr} />}
           <Button type="button" variant="destructive" disabled={del.isPending} onClick={() => { if (confirm("Удалить позицию?")) del.mutate(); }}>
             <Trash2 className="mr-1 h-4 w-4" /> Удалить
           </Button>
@@ -271,9 +314,9 @@ function EditRowDialog({ title, table, row, fields, invalidate }: {
 
 const PRODUCT_FIELDS: Field[] = [
   { key: "sku", label: "Артикул" }, { key: "name", label: "Название" }, { key: "composition", label: "Состав" },
-  { key: "color", label: "Цвет" }, { key: "width_cm", label: "Ширина, см", type: "number" }, { key: "sale_price", label: "Цена продажи за м, ₽", type: "number" },
+  { key: "color", label: "Цвет" }, { key: "width_cm", label: "Ширина, см", type: "number" },
 ];
 const LOT_FIELDS: Field[] = [
   { key: "meters", label: "Пришло, м", type: "number" }, { key: "remaining_meters", label: "Осталось, м", type: "number" },
-  { key: "purchase_price", label: "Цена прихода за м, ₽", type: "number" }, { key: "note", label: "Комментарий" },
+  { key: "purchase_price", label: "Себестоимость за м, ₽", type: "number", rpc: true }, { key: "note", label: "Комментарий" },
 ];

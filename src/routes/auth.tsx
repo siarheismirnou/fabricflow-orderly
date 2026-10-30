@@ -35,7 +35,7 @@ function AuthPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setBusy(false);
     if (error) { toast.error("Неверный email или пароль"); return; }
-    navigate({ to: "/dashboard" });
+    navigate({ to: "/" });
   }
   async function signUp(e: React.FormEvent) {
     e.preventDefault();
@@ -53,7 +53,7 @@ function AuthPage() {
     const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
     if (r.error) { toast.error("Не удалось войти через Google"); return; }
     if (r.redirected) return;
-    navigate({ to: "/dashboard" });
+    navigate({ to: "/" });
   }
 
   return (
