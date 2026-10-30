@@ -31,7 +31,7 @@ function ResetPage() {
     setBusy(false);
     if (error) { toast.error(error.message); return; }
     toast.success("Пароль изменён");
-    navigate({ to: "/dashboard" });
+    navigate({ to: "/" });
   }
   return (
     <div className="weave-bg flex min-h-screen items-center justify-center px-4">

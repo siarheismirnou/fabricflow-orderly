@@ -165,7 +165,7 @@ function NewOrder() {
   );
 }
 
-function StockRow({ lot, free, onAdd }: { lot: { id: string; remaining_meters: number; purchase_price: number; products: { sku: string; name: string; color: string | null; sale_price: number } | null; suppliers: { name: string } | null }; free: number; onAdd: (m: number, price: number) => void }) {
+function StockRow({ lot, free, onAdd }: { lot: { id: string; remaining_meters: number; products: { sku: string; name: string; color: string | null; sale_price: number } | null; suppliers: { name: string } | null }; free: number; onAdd: (m: number, price: number) => void }) {
   const [m, setM] = useState("");
   return (
     <div className="flex items-center gap-3 rounded-md border p-3 text-sm">

@@ -7,7 +7,7 @@ export function useLots() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("stock_receipts")
-        .select("*, products(sku,name,color,composition,width_cm,sale_price), suppliers(name)")
+        .select("id, product_id, supplier_id, meters, remaining_meters, received_at, received_by, note, products(sku,name,color,composition,width_cm,sale_price), suppliers(name)")
         .order("received_at", { ascending: false });
       if (error) throw error;
       return data;
@@ -17,7 +17,7 @@ export function useLots() {
 export function useProducts() {
   return useQuery({
     queryKey: ["products"],
-    queryFn: async () => (await supabase.from("products").select("*").order("name")).data ?? [],
+    queryFn: async () => (await supabase.from("products").select("id, sku, name, composition, color, width_cm, sale_price, created_at").order("name")).data ?? [],
   });
 }
 export function useSuppliers() {
@@ -48,6 +48,30 @@ export function useOrders() {
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
+    },
+  });
+}
+
+/** Cost data — super admin only (server rejects others). */
+export function useReceiptCosts(enabled: boolean) {
+  return useQuery({
+    queryKey: ["receipt-costs"],
+    enabled,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("admin_receipt_costs");
+      if (error) throw error;
+      return new Map((data ?? []).map((r) => [r.id, r]));
+    },
+  });
+}
+export function useProductCosts(enabled: boolean) {
+  return useQuery({
+    queryKey: ["product-costs"],
+    enabled,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("admin_product_costs");
+      if (error) throw error;
+      return new Map((data ?? []).map((r) => [r.id, r]));
     },
   });
 }

@@ -16,7 +16,7 @@ export const Route = createFileRoute("/_authenticated")({
 });
 
 const NAV: { to: "/dashboard" | "/orders" | "/warehouse" | "/clients" | "/suppliers" | "/employees"; label: string; icon: typeof Bell; roles?: AppRole[] }[] = [
-  { to: "/dashboard", label: "Отчёты", icon: LayoutDashboard },
+  { to: "/dashboard", label: "Отчёты", icon: LayoutDashboard, roles: ["super_admin"] },
   { to: "/orders", label: "Заказы", icon: ShoppingBag },
   { to: "/warehouse", label: "Склад", icon: Boxes },
   { to: "/clients", label: "Клиенты", icon: Users },
