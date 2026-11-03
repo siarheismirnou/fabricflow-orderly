@@ -1,4 +1,5 @@
 import { t } from "@/lib/i18n";
+import { LangSwitch } from "@/components/LangSwitch";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -10,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/auth")({
+  ssr: false,
   head: () => ({
     meta: [
       { title: t("Вход — Ткани") },
@@ -60,7 +62,7 @@ function AuthPage() {
   return (
     <div className="weave-bg flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-sm rounded-xl border bg-card p-8 shadow-sm">
-        <h1 className="text-3xl font-semibold">{t("Ткани")}</h1>
+        <div className="flex items-start justify-between"><h1 className="text-3xl font-semibold">Designtex</h1><LangSwitch /></div>
         <p className="mt-1 text-sm text-muted-foreground">{t("Внутренняя система компании")}</p>
         <Tabs defaultValue="in" className="mt-6">
           <TabsList className="grid w-full grid-cols-2">

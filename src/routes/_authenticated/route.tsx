@@ -1,4 +1,5 @@
 import { t } from "@/lib/i18n";
+import { LangSwitch } from "@/components/LangSwitch";
 import { createFileRoute, Link, Outlet, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -95,6 +96,7 @@ function Layout() {
           <button onClick={signOut} className="mt-3 flex items-center gap-2 text-xs opacity-80 hover:opacity-100">
             <LogOut className="h-3.5 w-3.5" /> {t("Выйти")}
           </button>
+          <LangSwitch className="mt-3 border-sidebar-border" />
         </div>
       </aside>
       <main className="min-w-0 flex-1 p-8">
