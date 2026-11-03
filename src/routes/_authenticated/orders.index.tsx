@@ -1,3 +1,4 @@
+import { t } from "@/lib/i18n";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Plus, LayoutList, Columns3 } from "lucide-react";
@@ -9,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export const Route = createFileRoute("/_authenticated/orders/")({
-  head: () => ({ meta: [{ title: "Заказы — Ткани" }, { name: "description", content: "Список заказов клиентов" }, { property: "og:title", content: "Заказы — Ткани" }, { property: "og:description", content: "Список заказов клиентов" }] }),
+  head: () => ({ meta: [{ title: t("Заказы — Ткани") }, { name: "description", content: t("Список заказов клиентов") }, { property: "og:title", content: t("Заказы — Ткани") }, { property: "og:description", content: t("Список заказов клиентов") }] }),
   component: Orders,
 });
 
@@ -32,20 +33,20 @@ function Orders() {
   return (
     <div>
       <PageHeader
-        title="Заказы"
-        subtitle={`${orders.length} заказов в системе`}
+        title={t("Заказы")}
+        subtitle={`${orders.length} ${t("заказов в системе")}`}
         actions={
           <div className="flex items-center gap-2">
             <div className="flex rounded-md border">
               <Button size="sm" variant={view === "table" ? "default" : "ghost"} className="rounded-r-none" onClick={() => setView("table")}>
-                <LayoutList className="mr-1 h-4 w-4" /> Таблица
+                <LayoutList className="mr-1 h-4 w-4" /> {t("Таблица")}
               </Button>
               <Button size="sm" variant={view === "kanban" ? "default" : "ghost"} className="rounded-l-none" onClick={() => setView("kanban")}>
-                <Columns3 className="mr-1 h-4 w-4" /> Канбан
+                <Columns3 className="mr-1 h-4 w-4" /> {t("Канбан")}
               </Button>
             </div>
             {hasAny(me?.roles, ["sales_manager"]) && (
-              <Button asChild><Link to="/orders/new"><Plus className="mr-1 h-4 w-4" /> Новый заказ</Link></Button>
+              <Button asChild><Link to="/orders/new"><Plus className="mr-1 h-4 w-4" /> {t("Новый заказ")}</Link></Button>
             )}
           </div>
         }
@@ -53,14 +54,14 @@ function Orders() {
       <div className="mb-4 flex flex-wrap gap-2">
         {(["all", ...STATUS_FLOW] as const).map((s) => (
           <Button key={s} size="sm" variant={filter === s ? "default" : "outline"} onClick={() => setFilter(s)}>
-            {s === "all" ? "Все" : STATUS_LABELS[s]} ({s === "all" ? orders.length : orders.filter((o) => o.status === s).length})
+            {s === "all" ? t("Все") : STATUS_LABELS[s]} ({s === "all" ? orders.length : orders.filter((o) => o.status === s).length})
           </Button>
         ))}
       </div>
       {view === "table" ? (
         <div className="rounded-lg border bg-card">
           <Table>
-            <TableHeader><TableRow><TableHead>№</TableHead><TableHead>Дата</TableHead><TableHead>Клиент</TableHead><TableHead>Менеджер</TableHead><TableHead>Позиций</TableHead><TableHead>Статус</TableHead><TableHead className="text-right">Сумма</TableHead></TableRow></TableHeader>
+            <TableHeader><TableRow><TableHead>№</TableHead><TableHead>{t("Дата")}</TableHead><TableHead>{t("Клиент")}</TableHead><TableHead>{t("Менеджер")}</TableHead><TableHead>{t("Позиций")}</TableHead><TableHead>{t("Статус")}</TableHead><TableHead className="text-right">{t("Сумма")}</TableHead></TableRow></TableHeader>
             <TableBody>
               {rows.map((o) => (
                 <TableRow key={o.id} className="cursor-pointer" onClick={() => navigate({ to: "/orders/$id", params: { id: o.id } })}>
@@ -73,7 +74,7 @@ function Orders() {
                   <TableCell className="text-right font-semibold">{rub(Number(o.total))}</TableCell>
                 </TableRow>
               ))}
-              {rows.length === 0 && <TableRow><TableCell colSpan={7} className="py-8 text-center text-muted-foreground">Заказов нет</TableCell></TableRow>}
+              {rows.length === 0 && <TableRow><TableCell colSpan={7} className="py-8 text-center text-muted-foreground">{t("Заказов нет")}</TableCell></TableRow>}
             </TableBody>
           </Table>
         </div>
@@ -108,7 +109,7 @@ function KanbanBoard({ orders, nameOf }: { orders: OrderRow[]; nameOf: (id: stri
                 </div>
               </Link>
             ))}
-            {items.length === 0 && <div className="py-6 text-center text-xs text-muted-foreground">Нет заказов</div>}
+            {items.length === 0 && <div className="py-6 text-center text-xs text-muted-foreground">{t("Нет заказов")}</div>}
           </div>
         </div>
       ))}

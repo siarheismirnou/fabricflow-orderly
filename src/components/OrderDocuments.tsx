@@ -1,3 +1,4 @@
+import { t } from "@/lib/i18n";
 import { useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -10,8 +11,8 @@ import { Button } from "@/components/ui/button";
 
 type Kind = "supplier_invoice" | "payment_order";
 const CFG: Record<Kind, { title: string; roles: AppRole[]; from: OrderStatus }> = {
-  supplier_invoice: { title: "Счёт от поставщика", roles: ["super_admin", "sales_manager", "warehouse"], from: "in_progress" },
-  payment_order: { title: "Платёжное поручение", roles: ["super_admin", "accountant"], from: "awaiting_payment" },
+  supplier_invoice: { title: t("Счёт от поставщика"), roles: ["super_admin", "sales_manager", "warehouse"], from: "in_progress" },
+  payment_order: { title: t("Платёжное поручение"), roles: ["super_admin", "accountant"], from: "awaiting_payment" },
 };
 
 export function OrderDocuments({ orderId, status, roles, userId }: { orderId: string; status: OrderStatus; roles: AppRole[]; userId?: string | undefined }) {
@@ -53,7 +54,7 @@ function DocBlock({ kind, orderId, docs, canUpload, isAdmin, userId, onChange }:
       const { error } = await supabase.from("order_documents").insert({ order_id: orderId, kind, file_path: path, file_name: file.name });
       if (error) { await supabase.storage.from("order-documents").remove([path]); throw error; }
     },
-    onSuccess: () => { toast.success("Файл прикреплён"); onChange(); },
+    onSuccess: () => { toast.success(t("Файл прикреплён")); onChange(); },
     onError: (e: Error) => toast.error(e.message),
   });
   const remove = useMutation({
@@ -74,16 +75,16 @@ function DocBlock({ kind, orderId, docs, canUpload, isAdmin, userId, onChange }:
   return (
     <div className="rounded-lg border bg-card p-4">
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="font-semibold">{CFG[kind].title} <span className="text-xs font-normal text-muted-foreground">· необязательно</span></h3>
+        <h3 className="font-semibold">{CFG[kind].title} <span className="text-xs font-normal text-muted-foreground">{t("· необязательно")}</span></h3>
         {canUpload && <>
           <input ref={input} type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
             onChange={(e) => { const f = e.target.files?.[0]; if (f) upload.mutate(f); e.target.value = ""; }} />
           <Button size="sm" variant="outline" disabled={upload.isPending} onClick={() => input.current?.click()}>
-            <Paperclip className="mr-1 h-4 w-4" />{upload.isPending ? "Загрузка…" : "Прикрепить"}
+            <Paperclip className="mr-1 h-4 w-4" />{upload.isPending ? t("Загрузка…") : t("Прикрепить")}
           </Button>
         </>}
       </div>
-      {docs.length === 0 ? <p className="text-sm text-muted-foreground">Файл не прикреплён</p> : (
+      {docs.length === 0 ? <p className="text-sm text-muted-foreground">{t("Файл не прикреплён")}</p> : (
         <ul className="space-y-2 text-sm">
           {docs.map((d) => (
             <li key={d.id} className="flex items-center gap-2">
@@ -91,7 +92,7 @@ function DocBlock({ kind, orderId, docs, canUpload, isAdmin, userId, onChange }:
               <button className="truncate text-left underline-offset-2 hover:underline" onClick={() => open(d.file_path)}>{d.file_name}</button>
               <span className="ml-auto text-xs text-muted-foreground">{new Date(d.created_at).toLocaleDateString("ru-RU")}</span>
               {(isAdmin || d.uploaded_by === userId) && (
-                <button aria-label="Удалить" className="text-muted-foreground hover:text-destructive" onClick={() => remove.mutate(d)}><Trash2 className="h-4 w-4" /></button>
+                <button aria-label={t("Удалить")} className="text-muted-foreground hover:text-destructive" onClick={() => remove.mutate(d)}><Trash2 className="h-4 w-4" /></button>
               )}
             </li>
           ))}

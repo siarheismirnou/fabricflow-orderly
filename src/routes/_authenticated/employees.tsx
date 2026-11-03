@@ -1,3 +1,4 @@
+import { t } from "@/lib/i18n";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -18,7 +19,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { UserPlus } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/employees")({
-  head: () => ({ meta: [{ title: "Сотрудники — Ткани" }, { name: "description", content: "Сотрудники и их роли" }, { property: "og:title", content: "Сотрудники — Ткани" }, { property: "og:description", content: "Сотрудники и их роли" }] }),
+  head: () => ({ meta: [{ title: t("Сотрудники — Ткани") }, { name: "description", content: t("Сотрудники и их роли") }, { property: "og:title", content: t("Сотрудники — Ткани") }, { property: "og:description", content: t("Сотрудники и их роли") }] }),
   component: Employees,
 });
 
@@ -42,14 +43,14 @@ function Employees() {
   const invite = useMutation({
     mutationFn: () => createEmployee({ data: { email: inviteEmail, fullName: inviteName, role: inviteRole } }),
     onSuccess: (r) => {
-      toast.success("Сотрудник добавлен");
+      toast.success(t("Сотрудник добавлен"));
       setCreated({ email: inviteEmail, password: r.password });
       setInviteEmail("");
       setInviteName("");
       qc.invalidateQueries({ queryKey: ["all-roles"] });
       qc.invalidateQueries({ queryKey: ["profiles"] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(t(e.message)),
   });
   const toggle = useMutation({
     mutationFn: async ({ user_id, role, on }: { user_id: string; role: AppRole; on: boolean }) => {
@@ -59,37 +60,37 @@ function Employees() {
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["all-roles"] }),
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(t(e.message)),
   });
 
-  if (!isAdmin) return <p className="text-muted-foreground">Раздел доступен только супер-админу.</p>;
+  if (!isAdmin) return <p className="text-muted-foreground">{t("Раздел доступен только супер-админу.")}</p>;
 
   return (
     <div>
       <PageHeader
-        title="Сотрудники"
-        subtitle="Супер-админ добавляет сотрудника, выбирает роль и получает пароль для первого входа."
+        title={t("Сотрудники")}
+        subtitle={t("Супер-админ добавляет сотрудника, выбирает роль и получает пароль для первого входа.")}
         actions={
           <Dialog open={inviteOpen} onOpenChange={(o) => { setInviteOpen(o); if (!o) setCreated(null); }}>
             <DialogTrigger asChild>
-              <Button><UserPlus className="mr-2 h-4 w-4" />Добавить сотрудника</Button>
+              <Button><UserPlus className="mr-2 h-4 w-4" />{t("Добавить сотрудника")}</Button>
             </DialogTrigger>
             <DialogContent>
-              <DialogHeader><DialogTitle>Добавить сотрудника</DialogTitle></DialogHeader>
+              <DialogHeader><DialogTitle>{t("Добавить сотрудника")}</DialogTitle></DialogHeader>
               {created ? (
                 <div className="space-y-3 text-sm">
-                  <p>Сотрудник создан. Данные для первого входа:</p>
+                  <p>{t("Сотрудник создан. Данные для первого входа:")}</p>
                   <div className="rounded-md border bg-muted p-3 font-mono">
                     <div>{created.email}</div>
                     <div>{created.password}</div>
                   </div>
-                  <Button className="w-full" onClick={() => { navigator.clipboard.writeText(`Email: ${created.email}\nПароль: ${created.password}`); toast.success("Скопировано"); }}>Скопировать</Button>
-                  <Button variant="outline" className="w-full" onClick={() => setCreated(null)}>Добавить ещё</Button>
+                  <Button className="w-full" onClick={() => { navigator.clipboard.writeText(`Email: ${created.email}\n${t("Пароль")}: ${created.password}`); toast.success(t("Скопировано")); }}>{t("Скопировать")}</Button>
+                  <Button variant="outline" className="w-full" onClick={() => setCreated(null)}>{t("Добавить ещё")}</Button>
                 </div>
               ) : (
                 <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); invite.mutate(); }}>
                   <div className="space-y-2">
-                    <Label htmlFor="inv-name">Имя и фамилия</Label>
+                    <Label htmlFor="inv-name">{t("Имя и фамилия")}</Label>
                     <Input id="inv-name" value={inviteName} onChange={(e) => setInviteName(e.target.value)} required />
                   </div>
                   <div className="space-y-2">
@@ -97,7 +98,7 @@ function Employees() {
                     <Input id="inv-email" type="email" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} required />
                   </div>
                   <div className="space-y-2">
-                    <Label>Роль</Label>
+                    <Label>{t("Роль")}</Label>
                     <Select value={inviteRole} onValueChange={(v) => setInviteRole(v as NewRole)}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -106,7 +107,7 @@ function Employees() {
                     </Select>
                   </div>
                   <Button type="submit" className="w-full" disabled={invite.isPending}>
-                    {invite.isPending ? "Создание…" : "Создать сотрудника"}
+                    {invite.isPending ? t("Создание…") : t("Создать сотрудника")}
                   </Button>
                 </form>
               )}
@@ -116,7 +117,7 @@ function Employees() {
       />
       <div className="rounded-lg border bg-card">
         <Table>
-          <TableHeader><TableRow><TableHead>Сотрудник</TableHead>{ALL_ROLES.map((r) => <TableHead key={r} className="text-center">{ROLE_LABELS[r]}</TableHead>)}</TableRow></TableHeader>
+          <TableHeader><TableRow><TableHead>{t("Сотрудник")}</TableHead>{ALL_ROLES.map((r) => <TableHead key={r} className="text-center">{ROLE_LABELS[r]}</TableHead>)}</TableRow></TableHeader>
           <TableBody>
             {profiles.map((p) => (
               <TableRow key={p.id}>

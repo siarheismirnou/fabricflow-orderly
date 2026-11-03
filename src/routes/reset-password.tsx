@@ -1,3 +1,4 @@
+import { t } from "@/lib/i18n";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -7,12 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/reset-password")({
+  ssr: false,
   head: () => ({
     meta: [
-      { title: "Новый пароль — Ткани" },
-      { name: "description", content: "Установка нового пароля сотрудника" },
-      { property: "og:title", content: "Новый пароль — Ткани" },
-      { property: "og:description", content: "Установка нового пароля сотрудника" },
+      { title: t("Новый пароль — Ткани") },
+      { name: "description", content: t("Установка нового пароля сотрудника") },
+      { property: "og:title", content: t("Новый пароль — Ткани") },
+      { property: "og:description", content: t("Установка нового пароля сотрудника") },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -30,15 +32,15 @@ function ResetPage() {
     const { error } = await supabase.auth.updateUser({ password });
     setBusy(false);
     if (error) { toast.error(error.message); return; }
-    toast.success("Пароль изменён");
+    toast.success(t("Пароль изменён"));
     navigate({ to: "/" });
   }
   return (
     <div className="weave-bg flex min-h-screen items-center justify-center px-4">
       <form onSubmit={submit} className="w-full max-w-sm space-y-4 rounded-xl border bg-card p-8 shadow-sm">
-        <h1 className="text-2xl font-semibold">Новый пароль</h1>
-        <div className="space-y-1.5"><Label>Пароль</Label><Input type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} /></div>
-        <Button className="w-full" disabled={busy}>Сохранить</Button>
+        <h1 className="text-2xl font-semibold">{t("Новый пароль")}</h1>
+        <div className="space-y-1.5"><Label>{t("Пароль")}</Label><Input type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} /></div>
+        <Button className="w-full" disabled={busy}>{t("Сохранить")}</Button>
       </form>
     </div>
   );

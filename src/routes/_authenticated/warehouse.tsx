@@ -1,3 +1,4 @@
+import { t } from "@/lib/i18n";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -18,7 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export const Route = createFileRoute("/_authenticated/warehouse")({
-  head: () => ({ meta: [{ title: "Склад — Ткани" }, { name: "description", content: "Остатки, приход и номенклатура тканей" }, { property: "og:title", content: "Склад — Ткани" }, { property: "og:description", content: "Остатки, приход и номенклатура тканей" }] }),
+  head: () => ({ meta: [{ title: t("Склад — Ткани") }, { name: "description", content: t("Остатки, приход и номенклатура тканей") }, { property: "og:title", content: t("Склад — Ткани") }, { property: "og:description", content: t("Остатки, приход и номенклатура тканей") }] }),
   component: Warehouse,
 });
 
@@ -56,33 +57,33 @@ function Warehouse() {
   return (
     <div>
       <PageHeader
-        title="Склад"
-        subtitle={isAdmin ? `Всего на складе ${meters(totalLeft)} на сумму ${rub(totalValue)} (по себестоимости)` : `Всего на складе ${meters(totalLeft)}`}
+        title={t("Склад")}
+        subtitle={isAdmin ? `${t("Всего на складе")} ${meters(totalLeft)} ${t("на сумму")} ${rub(totalValue)} ${t("(по себестоимости)")}` : `${t("Всего на складе")} ${meters(totalLeft)}`}
         actions={canEdit && (<><ProductDialog isAdmin={isAdmin} /><ReceiptDialog products={products} isAdmin={isAdmin} /></>)}
       />
       <Tabs defaultValue="lots">
         <TabsList>
-          <TabsTrigger value="lots">Партии</TabsTrigger>
-          <TabsTrigger value="totals">Остатки по товарам</TabsTrigger>
-          <TabsTrigger value="catalog">Номенклатура</TabsTrigger>
+          <TabsTrigger value="lots">{t("Партии")}</TabsTrigger>
+          <TabsTrigger value="totals">{t("Остатки по товарам")}</TabsTrigger>
+          <TabsTrigger value="catalog">{t("Номенклатура")}</TabsTrigger>
         </TabsList>
         <TabsContent value="lots">
           <div className="mb-4 flex items-center gap-4">
             <div className="relative max-w-sm flex-1">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input className="pl-9" placeholder="Артикул, название, цвет, поставщик…" value={q} onChange={(e) => setQ(e.target.value)} />
+              <Input className="pl-9" placeholder={t("Артикул, название, цвет, поставщик…")} value={q} onChange={(e) => setQ(e.target.value)} />
             </div>
             <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={onlyLeft} onChange={(e) => setOnlyLeft(e.target.checked)} /> только с остатком
+              <input type="checkbox" checked={onlyLeft} onChange={(e) => setOnlyLeft(e.target.checked)} /> {t("только с остатком")}
             </label>
           </div>
           <div className="rounded-lg border bg-card">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Дата прихода</TableHead><TableHead>Артикул</TableHead><TableHead>Ткань</TableHead><TableHead>Поставщик</TableHead>
-                  <TableHead className="text-right">Пришло</TableHead><TableHead className="text-right">Осталось</TableHead>
-                  {isAdmin && <TableHead className="text-right">Себестоимость, м</TableHead>}<TableHead className="text-right">Цена продажи, м</TableHead>
+                  <TableHead>{t("Дата прихода")}</TableHead><TableHead>{t("Артикул")}</TableHead><TableHead>{t("Ткань")}</TableHead><TableHead>{t("Поставщик")}</TableHead>
+                  <TableHead className="text-right">{t("Пришло")}</TableHead><TableHead className="text-right">{t("Осталось")}</TableHead>
+                  {isAdmin && <TableHead className="text-right">{t("Себестоимость, м")}</TableHead>}<TableHead className="text-right">{t("Цена продажи, м")}</TableHead>
                   {isAdmin && <TableHead />}
                 </TableRow>
               </TableHeader>
@@ -97,7 +98,7 @@ function Warehouse() {
                     <TableCell className="text-right font-semibold">{meters(Number(l.remaining_meters))}</TableCell>
                     {isAdmin && <TableCell className="text-right">{rub(lotCost(l.id))}</TableCell>}
                     <TableCell className="text-right">{rub(Number(l.products?.sale_price))}</TableCell>
-                    {isAdmin && <TableCell className="w-10"><EditRowDialog title="Редактировать партию" table="stock_receipts" row={{ ...l, purchase_price: lotCost(l.id) }} fields={LOT_FIELDS} invalidate={["lots", "receipt-costs"]} /></TableCell>}
+                    {isAdmin && <TableCell className="w-10"><EditRowDialog title={t("Редактировать партию")} table="stock_receipts" row={{ ...l, purchase_price: lotCost(l.id) }} fields={LOT_FIELDS} invalidate={["lots", "receipt-costs"]} /></TableCell>}
                   </TableRow>
                 ))}
               </TableBody>
@@ -107,7 +108,7 @@ function Warehouse() {
         <TabsContent value="totals">
           <div className="rounded-lg border bg-card">
             <Table>
-              <TableHeader><TableRow><TableHead>Артикул</TableHead><TableHead>Ткань</TableHead><TableHead className="text-right">Остаток</TableHead>{isAdmin && <TableHead className="text-right">Стоимость остатка</TableHead>}</TableRow></TableHeader>
+              <TableHeader><TableRow><TableHead>{t("Артикул")}</TableHead><TableHead>{t("Ткань")}</TableHead><TableHead className="text-right">{t("Остаток")}</TableHead>{isAdmin && <TableHead className="text-right">{t("Стоимость остатка")}</TableHead>}</TableRow></TableHeader>
               <TableBody>
                 {totals.map((t) => (
                   <TableRow key={t.sku}><TableCell className="font-mono text-xs">{t.sku}</TableCell><TableCell>{t.name}</TableCell><TableCell className="text-right font-semibold">{meters(t.left)}</TableCell>{isAdmin && <TableCell className="text-right">{rub(t.value)}</TableCell>}</TableRow>
@@ -119,11 +120,11 @@ function Warehouse() {
         <TabsContent value="catalog">
           <div className="rounded-lg border bg-card">
             <Table>
-              <TableHeader><TableRow><TableHead>Артикул</TableHead><TableHead>Название</TableHead><TableHead>Состав</TableHead><TableHead>Цвет</TableHead><TableHead>Ширина</TableHead>{isAdmin && <><TableHead className="text-right">Себестоимость, м</TableHead><TableHead className="text-right">Маржа</TableHead></>}<TableHead className="text-right">Цена продажи, м</TableHead>{isAdmin && <TableHead />}</TableRow></TableHeader>
+              <TableHeader><TableRow><TableHead>{t("Артикул")}</TableHead><TableHead>{t("Название")}</TableHead><TableHead>{t("Состав")}</TableHead><TableHead>{t("Цвет")}</TableHead><TableHead>{t("Ширина")}</TableHead>{isAdmin && <><TableHead className="text-right">{t("Себестоимость, м")}</TableHead><TableHead className="text-right">{t("Маржа")}</TableHead></>}<TableHead className="text-right">{t("Цена продажи, м")}</TableHead>{isAdmin && <TableHead />}</TableRow></TableHeader>
               <TableBody>
                 {products.map((p) => (
-                  <TableRow key={p.id}><TableCell className="font-mono text-xs">{p.sku}</TableCell><TableCell className="font-semibold">{p.name}</TableCell><TableCell>{p.composition}</TableCell><TableCell>{p.color}</TableCell><TableCell>{p.width_cm ? `${p.width_cm} см` : "—"}</TableCell>{isAdmin && <><TableCell className="text-right">{rub(Number(pc?.get(p.id)?.cost_price ?? 0))}</TableCell><TableCell className="text-right">{pc?.get(p.id)?.margin_percent != null ? `${pc.get(p.id)!.margin_percent}%` : "—"}</TableCell></>}<TableCell className="text-right">{rub(Number(p.sale_price))}</TableCell>
-                    {isAdmin && <TableCell className="w-10"><EditRowDialog title="Редактировать товар" table="products" row={{ ...p, cost_price: pc?.get(p.id)?.cost_price ?? 0, margin_percent: pc?.get(p.id)?.margin_percent ?? null }} fields={PRODUCT_FIELDS} pricing invalidate={["products", "lots", "product-costs"]} /></TableCell>}</TableRow>
+                  <TableRow key={p.id}><TableCell className="font-mono text-xs">{p.sku}</TableCell><TableCell className="font-semibold">{p.name}</TableCell><TableCell>{p.composition}</TableCell><TableCell>{p.color}</TableCell><TableCell>{p.width_cm ? `${p.width_cm} ${t("см")}` : "—"}</TableCell>{isAdmin && <><TableCell className="text-right">{rub(Number(pc?.get(p.id)?.cost_price ?? 0))}</TableCell><TableCell className="text-right">{pc?.get(p.id)?.margin_percent != null ? `${pc.get(p.id)!.margin_percent}%` : "—"}</TableCell></>}<TableCell className="text-right">{rub(Number(p.sale_price))}</TableCell>
+                    {isAdmin && <TableCell className="w-10"><EditRowDialog title={t("Редактировать товар")} table="products" row={{ ...p, cost_price: pc?.get(p.id)?.cost_price ?? 0, margin_percent: pc?.get(p.id)?.margin_percent ?? null }} fields={PRODUCT_FIELDS} pricing invalidate={["products", "lots", "product-costs"]} /></TableCell>}</TableRow>
                 ))}
               </TableBody>
             </Table>
@@ -155,7 +156,7 @@ function ReceiptDialog({ products, isAdmin }: { products: { id: string; sku: str
       }
     },
     onSuccess: () => {
-      toast.success("Приход оформлен");
+      toast.success(t("Приход оформлен"));
       setOpen(false);
       setF({ product_id: "", supplier_id: "", meters: "", purchase_price: "", note: "" });
       qc.invalidateQueries({ queryKey: ["lots"] });
@@ -165,28 +166,28 @@ function ReceiptDialog({ products, isAdmin }: { products: { id: string; sku: str
   });
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild><Button><PackagePlus className="mr-1 h-4 w-4" /> Оформить приход</Button></DialogTrigger>
+      <DialogTrigger asChild><Button><PackagePlus className="mr-1 h-4 w-4" /> {t("Оформить приход")}</Button></DialogTrigger>
       <DialogContent>
-        <DialogHeader><DialogTitle>Приход товара на склад</DialogTitle></DialogHeader>
-        <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); if (!f.product_id) { toast.error("Выберите товар"); return; } m.mutate(); }}>
-          <div className="space-y-1.5"><Label>Товар</Label>
+        <DialogHeader><DialogTitle>{t("Приход товара на склад")}</DialogTitle></DialogHeader>
+        <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); if (!f.product_id) { toast.error(t("Выберите товар")); return; } m.mutate(); }}>
+          <div className="space-y-1.5"><Label>{t("Товар")}</Label>
             <Select value={f.product_id} onValueChange={(v) => setF({ ...f, product_id: v })}>
-              <SelectTrigger><SelectValue placeholder="Выберите ткань" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t("Выберите ткань")} /></SelectTrigger>
               <SelectContent>{products.map((p) => <SelectItem key={p.id} value={p.id}>{p.sku} — {p.name}</SelectItem>)}</SelectContent>
             </Select>
           </div>
-          <div className="space-y-1.5"><Label>Поставщик</Label>
+          <div className="space-y-1.5"><Label>{t("Поставщик")}</Label>
             <Select value={f.supplier_id} onValueChange={(v) => setF({ ...f, supplier_id: v })}>
-              <SelectTrigger><SelectValue placeholder="Выберите поставщика" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t("Выберите поставщика")} /></SelectTrigger>
               <SelectContent>{suppliers.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
             </Select>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5"><Label>Метров</Label><Input type="number" step="0.01" min="0.01" required value={f.meters} onChange={(e) => setF({ ...f, meters: e.target.value })} /></div>
-            {isAdmin && <div className="space-y-1.5"><Label>Себестоимость за м, ₽</Label><Input type="number" step="0.01" min="0" value={f.purchase_price} onChange={(e) => setF({ ...f, purchase_price: e.target.value })} /></div>}
+            <div className="space-y-1.5"><Label>{t("Метров")}</Label><Input type="number" step="0.01" min="0.01" required value={f.meters} onChange={(e) => setF({ ...f, meters: e.target.value })} /></div>
+            {isAdmin && <div className="space-y-1.5"><Label>{t("Себестоимость за м, ₽")}</Label><Input type="number" step="0.01" min="0" value={f.purchase_price} onChange={(e) => setF({ ...f, purchase_price: e.target.value })} /></div>}
           </div>
-          <div className="space-y-1.5"><Label>Комментарий</Label><Input value={f.note} onChange={(e) => setF({ ...f, note: e.target.value })} /></div>
-          <Button className="w-full" disabled={m.isPending}>Принять на склад</Button>
+          <div className="space-y-1.5"><Label>{t("Комментарий")}</Label><Input value={f.note} onChange={(e) => setF({ ...f, note: e.target.value })} /></div>
+          <Button className="w-full" disabled={m.isPending}>{t("Принять на склад")}</Button>
         </form>
       </DialogContent>
     </Dialog>
@@ -207,23 +208,23 @@ function ProductDialog({ isAdmin }: { isAdmin: boolean }) {
       if (error) throw error;
       if (isAdmin) await savePricing(data.id, pr);
     },
-    onSuccess: () => { toast.success("Товар добавлен"); setOpen(false); qc.invalidateQueries({ queryKey: ["products"] }); qc.invalidateQueries({ queryKey: ["product-costs"] }); },
+    onSuccess: () => { toast.success(t("Товар добавлен")); setOpen(false); qc.invalidateQueries({ queryKey: ["products"] }); qc.invalidateQueries({ queryKey: ["product-costs"] }); },
     onError: (e: Error) => toast.error(e.message),
   });
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => setF({ ...f, [k]: e.target.value });
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild><Button variant="outline"><Plus className="mr-1 h-4 w-4" /> Новый товар</Button></DialogTrigger>
+      <DialogTrigger asChild><Button variant="outline"><Plus className="mr-1 h-4 w-4" /> {t("Новый товар")}</Button></DialogTrigger>
       <DialogContent>
-        <DialogHeader><DialogTitle>Новая позиция номенклатуры</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{t("Новая позиция номенклатуры")}</DialogTitle></DialogHeader>
         <form className="grid grid-cols-2 gap-3" onSubmit={(e) => { e.preventDefault(); m.mutate(); }}>
-          <div className="space-y-1.5"><Label>Артикул</Label><Input required value={f.sku} onChange={set("sku")} /></div>
-          <div className="space-y-1.5"><Label>Название</Label><Input required value={f.name} onChange={set("name")} /></div>
-          <div className="space-y-1.5"><Label>Состав</Label><Input value={f.composition} onChange={set("composition")} /></div>
-          <div className="space-y-1.5"><Label>Цвет</Label><Input value={f.color} onChange={set("color")} /></div>
-          <div className="space-y-1.5"><Label>Ширина, см</Label><Input type="number" value={f.width_cm} onChange={set("width_cm")} /></div>
+          <div className="space-y-1.5"><Label>{t("Артикул")}</Label><Input required value={f.sku} onChange={set("sku")} /></div>
+          <div className="space-y-1.5"><Label>{t("Название")}</Label><Input required value={f.name} onChange={set("name")} /></div>
+          <div className="space-y-1.5"><Label>{t("Состав")}</Label><Input value={f.composition} onChange={set("composition")} /></div>
+          <div className="space-y-1.5"><Label>{t("Цвет")}</Label><Input value={f.color} onChange={set("color")} /></div>
+          <div className="space-y-1.5"><Label>{t("Ширина, см")}</Label><Input type="number" value={f.width_cm} onChange={set("width_cm")} /></div>
           {isAdmin && <PricingFields v={pr} onChange={setPr} />}
-          <Button className="col-span-2" disabled={m.isPending}>Сохранить</Button>
+          <Button className="col-span-2" disabled={m.isPending}>{t("Сохранить")}</Button>
         </form>
       </DialogContent>
     </Dialog>
@@ -246,9 +247,9 @@ function PricingFields({ v, onChange }: { v: PriceState; onChange: (v: PriceStat
     onChange({ cost, margin, sale: cost !== "" && margin !== "" ? String(saleFromMargin(Number(cost), Number(margin))) : v.sale });
   return (
     <div className="col-span-2 grid grid-cols-3 gap-3 rounded-md border p-3">
-      <div className="space-y-1.5"><Label>Себестоимость, ₽/м</Label><Input type="number" step="0.01" min="0" value={v.cost} onChange={(e) => fromMargin(e.target.value, v.margin)} /></div>
-      <div className="space-y-1.5"><Label>Маржа, %</Label><Input type="number" step="0.01" value={v.margin} onChange={(e) => fromMargin(v.cost, e.target.value)} /></div>
-      <div className="space-y-1.5"><Label>Цена продажи, ₽/м</Label><Input type="number" step="0.01" min="0" required value={v.sale} onChange={(e) => {
+      <div className="space-y-1.5"><Label>{t("Себестоимость, ₽/м")}</Label><Input type="number" step="0.01" min="0" value={v.cost} onChange={(e) => fromMargin(e.target.value, v.margin)} /></div>
+      <div className="space-y-1.5"><Label>{t("Маржа, %")}</Label><Input type="number" step="0.01" value={v.margin} onChange={(e) => fromMargin(v.cost, e.target.value)} /></div>
+      <div className="space-y-1.5"><Label>{t("Цена продажи, ₽/м")}</Label><Input type="number" step="0.01" min="0" required value={v.sale} onChange={(e) => {
         const m = marginFromSale(Number(v.cost), Number(e.target.value));
         onChange({ ...v, sale: e.target.value, margin: m == null ? v.margin : String(m) });
       }} /></div>
@@ -279,20 +280,20 @@ function EditRowDialog({ title, table, row, fields, invalidate, pricing }: {
         if (e2) throw e2;
       }
     },
-    onSuccess: () => { toast.success("Сохранено"); setOpen(false); refresh(); },
+    onSuccess: () => { toast.success(t("Сохранено")); setOpen(false); refresh(); },
     onError: (e: Error) => toast.error(e.message),
   });
   const del = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.from(table).delete().eq("id", row["id"] as string);
-      if (error) throw new Error(error.code === "23503" ? "Нельзя удалить: позиция используется в заказах или партиях" : error.message);
+      if (error) throw new Error(error.code === "23503" ? t("Нельзя удалить: позиция используется в заказах или партиях") : error.message);
     },
-    onSuccess: () => { toast.success("Удалено"); setOpen(false); refresh(); },
+    onSuccess: () => { toast.success(t("Удалено")); setOpen(false); refresh(); },
     onError: (e: Error) => toast.error(e.message),
   });
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) { setV(init()); setPr(initPr()); } }}>
-      <DialogTrigger asChild><Button size="icon" variant="ghost" aria-label="Редактировать"><Pencil className="h-4 w-4" /></Button></DialogTrigger>
+      <DialogTrigger asChild><Button size="icon" variant="ghost" aria-label={t("Редактировать")}><Pencil className="h-4 w-4" /></Button></DialogTrigger>
       <DialogContent>
         <DialogHeader><DialogTitle>{title}</DialogTitle></DialogHeader>
         <form className="grid grid-cols-2 gap-3" onSubmit={(e) => { e.preventDefault(); save.mutate(); }}>
@@ -302,10 +303,10 @@ function EditRowDialog({ title, table, row, fields, invalidate, pricing }: {
             </div>
           ))}
           {pricing && <PricingFields v={pr} onChange={setPr} />}
-          <Button type="button" variant="destructive" disabled={del.isPending} onClick={() => { if (confirm("Удалить позицию?")) del.mutate(); }}>
-            <Trash2 className="mr-1 h-4 w-4" /> Удалить
+          <Button type="button" variant="destructive" disabled={del.isPending} onClick={() => { if (confirm(t("Удалить позицию?"))) del.mutate(); }}>
+            <Trash2 className="mr-1 h-4 w-4" /> {t("Удалить")}
           </Button>
-          <Button disabled={save.isPending}>Сохранить</Button>
+          <Button disabled={save.isPending}>{t("Сохранить")}</Button>
         </form>
       </DialogContent>
     </Dialog>
@@ -313,10 +314,10 @@ function EditRowDialog({ title, table, row, fields, invalidate, pricing }: {
 }
 
 const PRODUCT_FIELDS: Field[] = [
-  { key: "sku", label: "Артикул" }, { key: "name", label: "Название" }, { key: "composition", label: "Состав" },
-  { key: "color", label: "Цвет" }, { key: "width_cm", label: "Ширина, см", type: "number" },
+  { key: "sku", label: t("Артикул") }, { key: "name", label: t("Название") }, { key: "composition", label: t("Состав") },
+  { key: "color", label: t("Цвет") }, { key: "width_cm", label: t("Ширина, см"), type: "number" },
 ];
 const LOT_FIELDS: Field[] = [
-  { key: "meters", label: "Пришло, м", type: "number" }, { key: "remaining_meters", label: "Осталось, м", type: "number" },
-  { key: "purchase_price", label: "Себестоимость за м, ₽", type: "number", rpc: true }, { key: "note", label: "Комментарий" },
+  { key: "meters", label: t("Пришло, м"), type: "number" }, { key: "remaining_meters", label: t("Осталось, м"), type: "number" },
+  { key: "purchase_price", label: t("Себестоимость за м, ₽"), type: "number", rpc: true }, { key: "note", label: t("Комментарий") },
 ];

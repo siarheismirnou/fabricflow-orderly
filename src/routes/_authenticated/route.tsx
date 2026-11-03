@@ -1,3 +1,5 @@
+import { t } from "@/lib/i18n";
+import { LangSwitch } from "@/components/LangSwitch";
 import { createFileRoute, Link, Outlet, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -16,12 +18,12 @@ export const Route = createFileRoute("/_authenticated")({
 });
 
 const NAV: { to: "/dashboard" | "/orders" | "/warehouse" | "/clients" | "/suppliers" | "/employees"; label: string; icon: typeof Bell; roles?: AppRole[] }[] = [
-  { to: "/dashboard", label: "Отчёты", icon: LayoutDashboard, roles: ["super_admin"] },
-  { to: "/orders", label: "Заказы", icon: ShoppingBag },
-  { to: "/warehouse", label: "Склад", icon: Boxes },
-  { to: "/clients", label: "Клиенты", icon: Users },
-  { to: "/suppliers", label: "Поставщики", icon: Truck },
-  { to: "/employees", label: "Сотрудники", icon: UserCog, roles: ["super_admin"] },
+  { to: "/dashboard", label: t("Отчёты"), icon: LayoutDashboard, roles: ["super_admin"] },
+  { to: "/orders", label: t("Заказы"), icon: ShoppingBag },
+  { to: "/warehouse", label: t("Склад"), icon: Boxes },
+  { to: "/clients", label: t("Клиенты"), icon: Users },
+  { to: "/suppliers", label: t("Поставщики"), icon: Truck },
+  { to: "/employees", label: t("Сотрудники"), icon: UserCog, roles: ["super_admin"] },
 ];
 
 function Layout() {
@@ -62,7 +64,7 @@ function Layout() {
       <aside className="sticky top-0 flex h-screen w-60 shrink-0 flex-col bg-sidebar text-sidebar-foreground">
         <div className="px-5 py-6">
           <div className="font-display text-2xl font-semibold">Designtex</div>
-          <div className="text-xs opacity-70">учёт и продажи</div>
+          <div className="text-xs opacity-70">{t("учёт и продажи")}</div>
         </div>
         <nav className="flex-1 space-y-1 px-3">
           {NAV.filter((n) => !n.roles || hasAny(me?.roles, n.roles)).map((n) => (
@@ -80,7 +82,7 @@ function Layout() {
             className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors hover:bg-sidebar-accent"
             activeProps={{ className: "bg-sidebar-accent font-semibold" }}
           >
-            <Bell className="h-4 w-4" /> Уведомления
+            <Bell className="h-4 w-4" /> {t("Уведомления")}
             {unread > 0 && (
               <span className="ml-auto rounded-full bg-sidebar-primary px-2 text-xs text-sidebar-primary-foreground">{unread}</span>
             )}
@@ -89,18 +91,19 @@ function Layout() {
         <div className="border-t border-sidebar-border p-4 text-sm">
           <div className="truncate font-semibold">{me?.name}</div>
           <div className="text-xs opacity-70">
-            {me?.roles.length ? me.roles.map((r) => ROLE_LABELS[r]).join(", ") : "Роль не назначена"}
+            {me?.roles.length ? me.roles.map((r) => ROLE_LABELS[r]).join(", ") : t("Роль не назначена")}
           </div>
           <button onClick={signOut} className="mt-3 flex items-center gap-2 text-xs opacity-80 hover:opacity-100">
-            <LogOut className="h-3.5 w-3.5" /> Выйти
+            <LogOut className="h-3.5 w-3.5" /> {t("Выйти")}
           </button>
+          <LangSwitch className="mt-3 border-sidebar-border" />
         </div>
       </aside>
       <main className="min-w-0 flex-1 p-8">
         {me && me.roles.length === 0 ? (
           <div className="rounded-lg border bg-card p-8 text-center">
-            <h2 className="text-xl font-semibold">Ожидается назначение роли</h2>
-            <p className="mt-2 text-sm text-muted-foreground">Попросите администратора или специалиста по кадрам выдать вам доступ.</p>
+            <h2 className="text-xl font-semibold">{t("Ожидается назначение роли")}</h2>
+            <p className="mt-2 text-sm text-muted-foreground">{t("Попросите администратора или специалиста по кадрам выдать вам доступ.")}</p>
           </div>
         ) : (
           <Outlet />

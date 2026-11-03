@@ -1,3 +1,4 @@
+import { t } from "@/lib/i18n";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -43,7 +44,7 @@ export function DirectoryPage({
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Сохранено");
+      toast.success(t("Сохранено"));
       setOpen(false);
       setForm({});
       qc.invalidateQueries({ queryKey: [table] });
@@ -56,7 +57,7 @@ export function DirectoryPage({
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: [table] }),
-    onError: () => toast.error("Нельзя удалить: запись используется"),
+    onError: () => toast.error(t("Нельзя удалить: запись используется")),
   });
   const rows = data.filter((r) => fields.some((f) => (r[f.key] ?? "").toLowerCase().includes(q.toLowerCase())));
 
@@ -69,10 +70,10 @@ export function DirectoryPage({
           canEdit && (
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
-                <Button><Plus className="mr-1 h-4 w-4" /> Добавить</Button>
+                <Button><Plus className="mr-1 h-4 w-4" /> {t("Добавить")}</Button>
               </DialogTrigger>
               <DialogContent>
-                <DialogHeader><DialogTitle>Новая запись</DialogTitle></DialogHeader>
+                <DialogHeader><DialogTitle>{t("Новая запись")}</DialogTitle></DialogHeader>
                 <form
                   className="space-y-3"
                   onSubmit={(e) => {
@@ -86,7 +87,7 @@ export function DirectoryPage({
                       <Input required={f.required} value={form[f.key] ?? ""} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} />
                     </div>
                   ))}
-                  <Button className="w-full" disabled={add.isPending}>Сохранить</Button>
+                  <Button className="w-full" disabled={add.isPending}>{t("Сохранить")}</Button>
                 </form>
               </DialogContent>
             </Dialog>
@@ -95,7 +96,7 @@ export function DirectoryPage({
       />
       <div className="relative mb-4 max-w-sm">
         <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input className="pl-9" placeholder="Поиск…" value={q} onChange={(e) => setQ(e.target.value)} />
+        <Input className="pl-9" placeholder={t("Поиск…")} value={q} onChange={(e) => setQ(e.target.value)} />
       </div>
       <div className="rounded-lg border bg-card">
         <Table>
@@ -111,7 +112,7 @@ export function DirectoryPage({
                 {fields.map((f, i) => <TableCell key={f.key} className={i === 0 ? "font-semibold" : ""}>{r[f.key] || "—"}</TableCell>)}
                 {canEdit && (
                   <TableCell>
-                    <Button size="icon" variant="ghost" onClick={() => confirm("Удалить запись?") && del.mutate(r["id"]!)}>
+                    <Button size="icon" variant="ghost" onClick={() => confirm(t("Удалить запись?")) && del.mutate(r["id"]!)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </TableCell>
@@ -119,7 +120,7 @@ export function DirectoryPage({
               </TableRow>
             ))}
             {rows.length === 0 && (
-              <TableRow><TableCell colSpan={fields.length + 1} className="py-8 text-center text-muted-foreground">Ничего не найдено</TableCell></TableRow>
+              <TableRow><TableCell colSpan={fields.length + 1} className="py-8 text-center text-muted-foreground">{t("Ничего не найдено")}</TableCell></TableRow>
             )}
           </TableBody>
         </Table>
