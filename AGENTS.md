@@ -14,3 +14,4 @@
 - Stock is tracked per receipt lot (`stock_receipts.remaining_meters`), decremented by a DB trigger on `order_items` insert — keeps stock consistent without client logic.
 - Order status history and notifications are written by a DB trigger on `orders` — so every status change notifies, regardless of caller.
 - Report aggregation is pure functions in `src/lib/reports.ts` with tests — keeps business rules testable.
+- UI text is wrapped in `t("<Russian>")` from `src/lib/i18n.ts` with an EN dictionary there; switching language reloads the page so module-level labels re-evaluate.
