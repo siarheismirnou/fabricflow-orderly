@@ -34,7 +34,7 @@ function Orders() {
     <div>
       <PageHeader
         title={t("Заказы")}
-        subtitle={`${orders.length} заказов в системе`}
+        subtitle={`${orders.length} ${t("заказов в системе")}`}
         actions={
           <div className="flex items-center gap-2">
             <div className="flex rounded-md border">

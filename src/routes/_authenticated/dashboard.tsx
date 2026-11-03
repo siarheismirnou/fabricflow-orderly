@@ -82,7 +82,7 @@ function DashboardInner() {
         <Kpi label={t("Выручка")} value={rub(revenue)} />
         <Kpi label={t("Продано")} value={meters(soldM)} />
         <Kpi label={t("Оплаченных заказов")} value={String(sold.length)} />
-        <Kpi label={t("Остаток на складе")} value={meters(stockM)} hint={`на ${rub(stockV)}`} />
+        <Kpi label={t("Остаток на складе")} value={meters(stockM)} hint={`${t("на")} ${rub(stockV)}`} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">

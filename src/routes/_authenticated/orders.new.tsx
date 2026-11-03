@@ -93,7 +93,7 @@ function NewOrder() {
                 <button key={c.id} type="button" onClick={() => setClientId(c.id)}
                   className={`rounded-md border p-3 text-left text-sm transition-colors ${clientId === c.id ? "border-primary bg-primary/10" : "hover:bg-muted"}`}>
                   <div className="font-semibold">{c.name}</div>
-                  <div className="text-xs text-muted-foreground">{c.inn ? `ИНН ${c.inn}` : c.phone}</div>
+                  <div className="text-xs text-muted-foreground">{c.inn ? `${t("ИНН")} ${c.inn}` : c.phone}</div>
                 </button>
               ))}
             </div>
@@ -151,7 +151,7 @@ function NewOrder() {
             <div key={l.key} className="flex items-start justify-between gap-2 border-b pb-2 text-sm">
               <div>
                 <div className="font-semibold">{l.label}</div>
-                <div className="text-xs text-muted-foreground">{l.source === "stock" ? t("Со склада") : `Под заказ · ${l.supplierName}`} · {meters(l.meters)} × {rub(l.price)}</div>
+                <div className="text-xs text-muted-foreground">{l.source === "stock" ? t("Со склада") : `${t("Под заказ")} · ${l.supplierName}`} · {meters(l.meters)} × {rub(l.price)}</div>
               </div>
               <Button size="icon" variant="ghost" onClick={() => setLines(lines.filter((x) => x.key !== l.key))}><Trash2 className="h-4 w-4" /></Button>
             </div>

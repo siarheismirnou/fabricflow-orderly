@@ -58,7 +58,7 @@ function Warehouse() {
     <div>
       <PageHeader
         title={t("Склад")}
-        subtitle={isAdmin ? `Всего на складе ${meters(totalLeft)} на сумму ${rub(totalValue)} (по себестоимости)` : `Всего на складе ${meters(totalLeft)}`}
+        subtitle={isAdmin ? `${t("Всего на складе")} ${meters(totalLeft)} ${t("на сумму")} ${rub(totalValue)} ${t("(по себестоимости)")}` : `${t("Всего на складе")} ${meters(totalLeft)}`}
         actions={canEdit && (<><ProductDialog isAdmin={isAdmin} /><ReceiptDialog products={products} isAdmin={isAdmin} /></>)}
       />
       <Tabs defaultValue="lots">
@@ -123,7 +123,7 @@ function Warehouse() {
               <TableHeader><TableRow><TableHead>{t("Артикул")}</TableHead><TableHead>{t("Название")}</TableHead><TableHead>{t("Состав")}</TableHead><TableHead>{t("Цвет")}</TableHead><TableHead>{t("Ширина")}</TableHead>{isAdmin && <><TableHead className="text-right">{t("Себестоимость, м")}</TableHead><TableHead className="text-right">{t("Маржа")}</TableHead></>}<TableHead className="text-right">{t("Цена продажи, м")}</TableHead>{isAdmin && <TableHead />}</TableRow></TableHeader>
               <TableBody>
                 {products.map((p) => (
-                  <TableRow key={p.id}><TableCell className="font-mono text-xs">{p.sku}</TableCell><TableCell className="font-semibold">{p.name}</TableCell><TableCell>{p.composition}</TableCell><TableCell>{p.color}</TableCell><TableCell>{p.width_cm ? `${p.width_cm} см` : "—"}</TableCell>{isAdmin && <><TableCell className="text-right">{rub(Number(pc?.get(p.id)?.cost_price ?? 0))}</TableCell><TableCell className="text-right">{pc?.get(p.id)?.margin_percent != null ? `${pc.get(p.id)!.margin_percent}%` : "—"}</TableCell></>}<TableCell className="text-right">{rub(Number(p.sale_price))}</TableCell>
+                  <TableRow key={p.id}><TableCell className="font-mono text-xs">{p.sku}</TableCell><TableCell className="font-semibold">{p.name}</TableCell><TableCell>{p.composition}</TableCell><TableCell>{p.color}</TableCell><TableCell>{p.width_cm ? `${p.width_cm} ${t("см")}` : "—"}</TableCell>{isAdmin && <><TableCell className="text-right">{rub(Number(pc?.get(p.id)?.cost_price ?? 0))}</TableCell><TableCell className="text-right">{pc?.get(p.id)?.margin_percent != null ? `${pc.get(p.id)!.margin_percent}%` : "—"}</TableCell></>}<TableCell className="text-right">{rub(Number(p.sale_price))}</TableCell>
                     {isAdmin && <TableCell className="w-10"><EditRowDialog title={t("Редактировать товар")} table="products" row={{ ...p, cost_price: pc?.get(p.id)?.cost_price ?? 0, margin_percent: pc?.get(p.id)?.margin_percent ?? null }} fields={PRODUCT_FIELDS} pricing invalidate={["products", "lots", "product-costs"]} /></TableCell>}</TableRow>
                 ))}
               </TableBody>

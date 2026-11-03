@@ -1,4 +1,4 @@
-import { t } from "@/lib/i18n";
+import { t, locale } from "@/lib/i18n";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -58,8 +58,8 @@ function OrderPage() {
     <div className="max-w-5xl">
       <Link to="/orders" className="mb-3 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="h-4 w-4" /> {t("Все заказы")}</Link>
       <PageHeader
-        title={`Заказ №${order.number}`}
-        subtitle={`${order.clients?.name} · менеджер ${nameOf(order.manager_id)} · ${new Date(order.created_at).toLocaleString("ru-RU")}`}
+        title={`${t("Заказ №")}${order.number}`}
+        subtitle={`${order.clients?.name} · ${t("менеджер")} ${nameOf(order.manager_id)} · ${new Date(order.created_at).toLocaleString(locale())}`}
         actions={<>
           {prev && canMoveTo(roles, prev) && <Button variant="outline" disabled={move.isPending} onClick={() => move.mutate(prev)}>{t("Вернуть в «")}{STATUS_LABELS[prev]}»</Button>}
           {next && (canMoveTo(roles, next)
@@ -87,7 +87,7 @@ function OrderPage() {
               {order.order_items.map((it) => (
                 <TableRow key={it.id}>
                   <TableCell><div className="font-semibold">{it.products?.sku} {it.products?.name}</div><div className="text-xs text-muted-foreground">{it.products?.color}</div></TableCell>
-                  <TableCell>{it.source === "stock" ? t("Склад") : `Под заказ · ${it.suppliers?.name ?? ""}`}</TableCell>
+                  <TableCell>{it.source === "stock" ? t("Склад") : `${t("Под заказ")} · ${it.suppliers?.name ?? ""}`}</TableCell>
                   <TableCell className="text-right">{meters(Number(it.meters))}</TableCell>
                   <TableCell className="text-right">{rub(Number(it.price))}</TableCell>
                   <TableCell className="text-right font-semibold">{rub(Number(it.meters) * Number(it.price))}</TableCell>
@@ -104,7 +104,7 @@ function OrderPage() {
             {history.map((h) => (
               <li key={h.id} className="border-l-2 border-primary pl-3">
                 <div className="font-semibold">{STATUS_LABELS[h.to_status]}</div>
-                <div className="text-xs text-muted-foreground">{new Date(h.changed_at).toLocaleString("ru-RU")} · {nameOf(h.changed_by)}</div>
+                <div className="text-xs text-muted-foreground">{new Date(h.changed_at).toLocaleString(locale())} · {nameOf(h.changed_by)}</div>
               </li>
             ))}
           </ul>

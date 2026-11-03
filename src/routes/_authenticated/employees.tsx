@@ -84,7 +84,7 @@ function Employees() {
                     <div>{created.email}</div>
                     <div>{created.password}</div>
                   </div>
-                  <Button className="w-full" onClick={() => { navigator.clipboard.writeText(`Email: ${created.email}\nПароль: ${created.password}`); toast.success(t("Скопировано")); }}>{t("Скопировать")}</Button>
+                  <Button className="w-full" onClick={() => { navigator.clipboard.writeText(`Email: ${created.email}\n${t("Пароль")}: ${created.password}`); toast.success(t("Скопировано")); }}>{t("Скопировать")}</Button>
                   <Button variant="outline" className="w-full" onClick={() => setCreated(null)}>{t("Добавить ещё")}</Button>
                 </div>
               ) : (

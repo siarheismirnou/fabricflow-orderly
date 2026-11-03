@@ -57,4 +57,4 @@ export function canMoveTo(roles: AppRole[], to: OrderStatus): boolean {
 
 export const rub = (n: number) =>
   new Intl.NumberFormat("ru-RU", { style: "currency", currency: "RUB", maximumFractionDigits: 0 }).format(n || 0);
-export const meters = (n: number) => `${new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 2 }).format(n || 0)} м`;
+export const meters = (n: number) => `${new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 2 }).format(n || 0)} ${t("м")}`;
