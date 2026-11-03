@@ -135,7 +135,7 @@ function DashboardInner() {
         <Table>
           <TableHeader><TableRow><TableHead>{t("Ткань")}</TableHead><TableHead className="text-right">{t("Метров")}</TableHead><TableHead className="text-right">{t("Выручка")}</TableHead></TableRow></TableHeader>
           <TableBody>
-            {topProducts(sold, 100).map((t) => <TableRow key={t.name}><TableCell>{t.name}</TableCell><TableCell className="text-right">{meters(t.meters)}</TableCell><TableCell className="text-right">{rub(t.revenue)}</TableCell></TableRow>)}
+            {topProducts(sold, 100).map((tp) => <TableRow key={tp.name}><TableCell>{tp.name}</TableCell><TableCell className="text-right">{meters(tp.meters)}</TableCell><TableCell className="text-right">{rub(tp.revenue)}</TableCell></TableRow>)}
           </TableBody>
         </Table>
       </Card>
