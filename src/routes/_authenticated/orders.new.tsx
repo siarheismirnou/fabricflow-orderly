@@ -1,3 +1,4 @@
+import { t } from "@/lib/i18n";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -15,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/_authenticated/orders/new")({
-  head: () => ({ meta: [{ title: "Новый заказ — Ткани" }, { name: "description", content: "Оформление заказа клиента" }, { property: "og:title", content: "Новый заказ — Ткани" }, { property: "og:description", content: "Оформление заказа клиента" }] }),
+  head: () => ({ meta: [{ title: t("Новый заказ — Ткани") }, { name: "description", content: t("Оформление заказа клиента") }, { property: "og:title", content: t("Новый заказ — Ткани") }, { property: "og:description", content: t("Оформление заказа клиента") }] }),
   component: NewOrder,
 });
 
@@ -72,7 +73,7 @@ function NewOrder() {
       return order.id;
     },
     onSuccess: (id) => {
-      toast.success("Заказ создан");
+      toast.success(t("Заказ создан"));
       qc.invalidateQueries();
       navigate({ to: "/orders/$id", params: { id } });
     },
@@ -81,12 +82,12 @@ function NewOrder() {
 
   return (
     <div className="max-w-6xl">
-      <PageHeader title="Новый заказ" subtitle="Выберите клиента и добавьте ткани со склада или под заказ" />
+      <PageHeader title={t("Новый заказ")} subtitle={t("Выберите клиента и добавьте ткани со склада или под заказ")} />
       <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
         <div className="space-y-6">
           <section className="rounded-lg border bg-card p-5">
-            <h2 className="mb-3 text-lg font-semibold">1. Клиент</h2>
-            <Input placeholder="Поиск по названию или ИНН…" value={clientQ} onChange={(e) => setClientQ(e.target.value)} className="mb-3" />
+            <h2 className="mb-3 text-lg font-semibold">{t("1. Клиент")}</h2>
+            <Input placeholder={t("Поиск по названию или ИНН…")} value={clientQ} onChange={(e) => setClientQ(e.target.value)} className="mb-3" />
             <div className="grid max-h-48 gap-2 overflow-auto sm:grid-cols-2">
               {clients.filter((c) => `${c.name} ${c.inn ?? ""}`.toLowerCase().includes(clientQ.toLowerCase())).map((c) => (
                 <button key={c.id} type="button" onClick={() => setClientId(c.id)}
@@ -99,18 +100,18 @@ function NewOrder() {
           </section>
 
           <section className="rounded-lg border bg-card p-5">
-            <h2 className="mb-3 text-lg font-semibold">2. Товары</h2>
+            <h2 className="mb-3 text-lg font-semibold">{t("2. Товары")}</h2>
             <Tabs defaultValue="stock">
-              <TabsList><TabsTrigger value="stock">Со склада</TabsTrigger><TabsTrigger value="supplier">Под заказ</TabsTrigger></TabsList>
+              <TabsList><TabsTrigger value="stock">{t("Со склада")}</TabsTrigger><TabsTrigger value="supplier">{t("Под заказ")}</TabsTrigger></TabsList>
               <TabsContent value="stock">
                 <div className="relative mb-3">
                   <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input className="pl-9" placeholder="Поиск по складу: артикул, название, цвет…" value={q} onChange={(e) => setQ(e.target.value)} />
+                  <Input className="pl-9" placeholder={t("Поиск по складу: артикул, название, цвет…")} value={q} onChange={(e) => setQ(e.target.value)} />
                 </div>
                 <div className="max-h-80 space-y-2 overflow-auto">
                   {found.map((l) => <StockRow key={l.id} lot={l} free={Number(l.remaining_meters) - reserved(l.id)} onAdd={(m, price) =>
                     setLines([...lines, { key: crypto.randomUUID(), source: "stock", product_id: l.product_id, receipt_id: l.id, label: `${l.products?.sku} ${l.products?.name}`, available: Number(l.remaining_meters), meters: m, price }])} />)}
-                  {found.length === 0 && <p className="py-6 text-center text-sm text-muted-foreground">Ничего не найдено на складе</p>}
+                  {found.length === 0 && <p className="py-6 text-center text-sm text-muted-foreground">{t("Ничего не найдено на складе")}</p>}
                 </div>
               </TabsContent>
               <TabsContent value="supplier">
@@ -118,25 +119,25 @@ function NewOrder() {
                   e.preventDefault();
                   const p = products.find((x) => x.id === custom.product_id);
                   const s = suppliers.find((x) => x.id === custom.supplier_id);
-                  if (!p || !s) { toast.error("Выберите товар и поставщика"); return; }
+                  if (!p || !s) { toast.error(t("Выберите товар и поставщика")); return; }
                   setLines([...lines, { key: crypto.randomUUID(), source: "supplier", product_id: p.id, supplier_id: s.id, supplierName: s.name, label: `${p.sku} ${p.name}`, meters: Number(custom.meters), price: Number(custom.price || p.sale_price) }]);
                   setCustom({ product_id: "", supplier_id: "", meters: "", price: "" });
                 }}>
-                  <div className="space-y-1.5"><Label>Товар</Label>
+                  <div className="space-y-1.5"><Label>{t("Товар")}</Label>
                     <Select value={custom.product_id} onValueChange={(v) => setCustom({ ...custom, product_id: v, price: String(products.find((p) => p.id === v)?.sale_price ?? "") })}>
-                      <SelectTrigger><SelectValue placeholder="Ткань из номенклатуры" /></SelectTrigger>
+                      <SelectTrigger><SelectValue placeholder={t("Ткань из номенклатуры")} /></SelectTrigger>
                       <SelectContent>{products.map((p) => <SelectItem key={p.id} value={p.id}>{p.sku} — {p.name}</SelectItem>)}</SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-1.5"><Label>Поставщик</Label>
+                  <div className="space-y-1.5"><Label>{t("Поставщик")}</Label>
                     <Select value={custom.supplier_id} onValueChange={(v) => setCustom({ ...custom, supplier_id: v })}>
-                      <SelectTrigger><SelectValue placeholder="Из справочника" /></SelectTrigger>
+                      <SelectTrigger><SelectValue placeholder={t("Из справочника")} /></SelectTrigger>
                       <SelectContent>{suppliers.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-1.5"><Label>Метров</Label><Input type="number" step="0.01" min="0.01" required value={custom.meters} onChange={(e) => setCustom({ ...custom, meters: e.target.value })} /></div>
-                  <div className="space-y-1.5"><Label>Цена за м, ₽</Label><Input type="number" step="0.01" required value={custom.price} onChange={(e) => setCustom({ ...custom, price: e.target.value })} /></div>
-                  <Button className="sm:col-span-2" variant="secondary">Добавить в заказ</Button>
+                  <div className="space-y-1.5"><Label>{t("Метров")}</Label><Input type="number" step="0.01" min="0.01" required value={custom.meters} onChange={(e) => setCustom({ ...custom, meters: e.target.value })} /></div>
+                  <div className="space-y-1.5"><Label>{t("Цена за м, ₽")}</Label><Input type="number" step="0.01" required value={custom.price} onChange={(e) => setCustom({ ...custom, price: e.target.value })} /></div>
+                  <Button className="sm:col-span-2" variant="secondary">{t("Добавить в заказ")}</Button>
                 </form>
               </TabsContent>
             </Tabs>
@@ -144,21 +145,21 @@ function NewOrder() {
         </div>
 
         <aside className="h-fit space-y-4 rounded-lg border bg-card p-5 lg:sticky lg:top-8">
-          <h2 className="text-lg font-semibold">Состав заказа</h2>
-          {lines.length === 0 && <p className="text-sm text-muted-foreground">Добавьте хотя бы одну позицию</p>}
+          <h2 className="text-lg font-semibold">{t("Состав заказа")}</h2>
+          {lines.length === 0 && <p className="text-sm text-muted-foreground">{t("Добавьте хотя бы одну позицию")}</p>}
           {lines.map((l) => (
             <div key={l.key} className="flex items-start justify-between gap-2 border-b pb-2 text-sm">
               <div>
                 <div className="font-semibold">{l.label}</div>
-                <div className="text-xs text-muted-foreground">{l.source === "stock" ? "Со склада" : `Под заказ · ${l.supplierName}`} · {meters(l.meters)} × {rub(l.price)}</div>
+                <div className="text-xs text-muted-foreground">{l.source === "stock" ? t("Со склада") : `Под заказ · ${l.supplierName}`} · {meters(l.meters)} × {rub(l.price)}</div>
               </div>
               <Button size="icon" variant="ghost" onClick={() => setLines(lines.filter((x) => x.key !== l.key))}><Trash2 className="h-4 w-4" /></Button>
             </div>
           ))}
-          <div className="flex justify-between text-lg font-semibold"><span>Итого</span><span>{rub(total)}</span></div>
-          <Textarea placeholder="Комментарий к заказу" value={note} onChange={(e) => setNote(e.target.value)} />
-          <Button className="w-full" disabled={!clientId || lines.length === 0 || save.isPending} onClick={() => save.mutate()}>Создать заказ</Button>
-          {!clientId && <p className="text-xs text-muted-foreground">Выберите клиента</p>}
+          <div className="flex justify-between text-lg font-semibold"><span>{t("Итого")}</span><span>{rub(total)}</span></div>
+          <Textarea placeholder={t("Комментарий к заказу")} value={note} onChange={(e) => setNote(e.target.value)} />
+          <Button className="w-full" disabled={!clientId || lines.length === 0 || save.isPending} onClick={() => save.mutate()}>{t("Создать заказ")}</Button>
+          {!clientId && <p className="text-xs text-muted-foreground">{t("Выберите клиента")}</p>}
         </aside>
       </div>
     </div>
@@ -171,10 +172,10 @@ function StockRow({ lot, free, onAdd }: { lot: { id: string; remaining_meters: n
     <div className="flex items-center gap-3 rounded-md border p-3 text-sm">
       <div className="flex-1">
         <div className="font-semibold">{lot.products?.sku} · {lot.products?.name} <span className="font-normal text-muted-foreground">{lot.products?.color}</span></div>
-        <div className="text-xs text-muted-foreground">Доступно {meters(free)} · {rub(Number(lot.products?.sale_price))}/м · {lot.suppliers?.name}</div>
+        <div className="text-xs text-muted-foreground">{t("Доступно")} {meters(free)} · {rub(Number(lot.products?.sale_price))}{t("/м ·")} {lot.suppliers?.name}</div>
       </div>
-      <Input className="w-24" type="number" step="0.01" placeholder="м" value={m} onChange={(e) => setM(e.target.value)} />
-      <Button size="sm" disabled={!m || Number(m) <= 0 || Number(m) > free} onClick={() => { onAdd(Number(m), Number(lot.products?.sale_price)); setM(""); }}>Добавить</Button>
+      <Input className="w-24" type="number" step="0.01" placeholder={t("м")} value={m} onChange={(e) => setM(e.target.value)} />
+      <Button size="sm" disabled={!m || Number(m) <= 0 || Number(m) > free} onClick={() => { onAdd(Number(m), Number(lot.products?.sale_price)); setM(""); }}>{t("Добавить")}</Button>
     </div>
   );
 }

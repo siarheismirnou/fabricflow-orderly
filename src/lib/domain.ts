@@ -1,14 +1,15 @@
+import { t } from "@/lib/i18n";
 import type { Database } from "@/integrations/supabase/types";
 
 export type AppRole = Database["public"]["Enums"]["app_role"];
 export type OrderStatus = Database["public"]["Enums"]["order_status"];
 
 export const ROLE_LABELS: Record<AppRole, string> = {
-  super_admin: "Супер-админ",
-  accountant: "Бухгалтер",
-  sales_manager: "Менеджер по продажам",
-  hr: "Специалист по кадрам",
-  warehouse: "Складской специалист",
+  super_admin: t("Супер-админ"),
+  accountant: t("Бухгалтер"),
+  sales_manager: t("Менеджер по продажам"),
+  hr: t("Специалист по кадрам"),
+  warehouse: t("Складской специалист"),
 };
 
 export const STATUS_FLOW: OrderStatus[] = [
@@ -22,13 +23,13 @@ export const STATUS_FLOW: OrderStatus[] = [
 ];
 
 export const STATUS_LABELS: Record<OrderStatus, string> = {
-  new: "Новый",
-  in_progress: "В работе",
-  awaiting_payment: "Ожидает оплаты",
-  paid: "Оплачен",
-  in_transit: "В пути",
-  at_warehouse: "На складе",
-  completed: "Завершён",
+  new: t("Новый"),
+  in_progress: t("В работе"),
+  awaiting_payment: t("Ожидает оплаты"),
+  paid: t("Оплачен"),
+  in_transit: t("В пути"),
+  at_warehouse: t("На складе"),
+  completed: t("Завершён"),
 };
 
 /** Statuses counted as a sale in reports (payment received). */

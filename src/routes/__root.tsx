@@ -1,3 +1,4 @@
+import { t } from "@/lib/i18n";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -80,8 +81,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Ткани — внутренняя система" },
-      { name: "description", content: "Заказы, склад и отчёты компании по продаже тканей" },
+      { title: t("Ткани — внутренняя система") },
+      { name: "description", content: t("Заказы, склад и отчёты компании по продаже тканей") },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },

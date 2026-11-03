@@ -1,3 +1,4 @@
+import { t } from "@/lib/i18n";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Bar, BarChart, CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
@@ -12,19 +13,19 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
-  head: () => ({ meta: [{ title: "Отчёты — Ткани" }, { name: "description", content: "Продажи и остатки: графики и таблицы" }, { property: "og:title", content: "Отчёты — Ткани" }, { property: "og:description", content: "Продажи и остатки: графики и таблицы" }] }),
+  head: () => ({ meta: [{ title: t("Отчёты — Ткани") }, { name: "description", content: t("Продажи и остатки: графики и таблицы") }, { property: "og:title", content: t("Отчёты — Ткани") }, { property: "og:description", content: t("Продажи и остатки: графики и таблицы") }] }),
   component: Dashboard,
 });
 
-const salesCfg = { revenue: { label: "Выручка", color: "var(--chart-1)" }, meters: { label: "Метры", color: "var(--chart-2)" } } satisfies ChartConfig;
-const stockCfg = { left: { label: "Остаток, м", color: "var(--chart-1)" } } satisfies ChartConfig;
-const topCfg = { meters: { label: "Продано, м", color: "var(--chart-2)" } } satisfies ChartConfig;
+const salesCfg = { revenue: { label: t("Выручка"), color: "var(--chart-1)" }, meters: { label: t("Метры"), color: "var(--chart-2)" } } satisfies ChartConfig;
+const stockCfg = { left: { label: t("Остаток, м"), color: "var(--chart-1)" } } satisfies ChartConfig;
+const topCfg = { meters: { label: t("Продано, м"), color: "var(--chart-2)" } } satisfies ChartConfig;
 
 function Dashboard() {
   const { data: me, isLoading } = useMe();
   if (isLoading) return null;
   if (!me?.roles.includes("super_admin"))
-    return <div className="rounded-lg border bg-card p-8 text-center"><h2 className="text-xl font-semibold">Нет доступа</h2><p className="mt-2 text-sm text-muted-foreground">Финансовая аналитика доступна только супер-админу.</p></div>;
+    return <div className="rounded-lg border bg-card p-8 text-center"><h2 className="text-xl font-semibold">{t("Нет доступа")}</h2><p className="mt-2 text-sm text-muted-foreground">{t("Финансовая аналитика доступна только супер-админу.")}</p></div>;
   return <DashboardInner />;
 }
 
@@ -61,16 +62,16 @@ function DashboardInner() {
   return (
     <div>
       <PageHeader
-        title="Отчёты"
-        subtitle="Продажи считаются по оплаченным заказам (Оплачен и далее)"
+        title={t("Отчёты")}
+        subtitle={t("Продажи считаются по оплаченным заказам (Оплачен и далее)")}
         actions={<>
           <Tabs value={period} onValueChange={(v) => setPeriod(v as Period)}>
-            <TabsList><TabsTrigger value="week">Неделя</TabsTrigger><TabsTrigger value="month">Месяц</TabsTrigger><TabsTrigger value="year">Год</TabsTrigger></TabsList>
+            <TabsList><TabsTrigger value="week">{t("Неделя")}</TabsTrigger><TabsTrigger value="month">{t("Месяц")}</TabsTrigger><TabsTrigger value="year">{t("Год")}</TabsTrigger></TabsList>
           </Tabs>
           <Select value={manager} onValueChange={setManager}>
             <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Вся организация</SelectItem>
+              <SelectItem value="all">{t("Вся организация")}</SelectItem>
               {managerIds.map((id) => <SelectItem key={id} value={id}>{nameOf(id)}</SelectItem>)}
             </SelectContent>
           </Select>
@@ -78,14 +79,14 @@ function DashboardInner() {
       />
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi label="Выручка" value={rub(revenue)} />
-        <Kpi label="Продано" value={meters(soldM)} />
-        <Kpi label="Оплаченных заказов" value={String(sold.length)} />
-        <Kpi label="Остаток на складе" value={meters(stockM)} hint={`на ${rub(stockV)}`} />
+        <Kpi label={t("Выручка")} value={rub(revenue)} />
+        <Kpi label={t("Продано")} value={meters(soldM)} />
+        <Kpi label={t("Оплаченных заказов")} value={String(sold.length)} />
+        <Kpi label={t("Остаток на складе")} value={meters(stockM)} hint={`на ${rub(stockV)}`} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card title="Динамика продаж">
+        <Card title={t("Динамика продаж")}>
           <ChartContainer config={salesCfg} className="h-64 w-full">
             <LineChart data={timeline}>
               <CartesianGrid vertical={false} />
@@ -96,7 +97,7 @@ function DashboardInner() {
             </LineChart>
           </ChartContainer>
         </Card>
-        <Card title="Топ проданных тканей, м">
+        <Card title={t("Топ проданных тканей, м")}>
           <ChartContainer config={topCfg} className="h-64 w-full">
             <BarChart data={top} layout="vertical" margin={{ left: 20 }}>
               <XAxis type="number" hide />
@@ -106,7 +107,7 @@ function DashboardInner() {
             </BarChart>
           </ChartContainer>
         </Card>
-        <Card title="Остатки по тканям, м">
+        <Card title={t("Остатки по тканям, м")}>
           <ChartContainer config={stockCfg} className="h-64 w-full">
             <BarChart data={stock}>
               <CartesianGrid vertical={false} />
@@ -117,22 +118,22 @@ function DashboardInner() {
             </BarChart>
           </ChartContainer>
         </Card>
-        <Card title="Продажи по специалистам">
+        <Card title={t("Продажи по специалистам")}>
           <Table>
-            <TableHeader><TableRow><TableHead>Менеджер</TableHead><TableHead className="text-right">Заказов</TableHead><TableHead className="text-right">Метров</TableHead><TableHead className="text-right">Выручка</TableHead></TableRow></TableHeader>
+            <TableHeader><TableRow><TableHead>{t("Менеджер")}</TableHead><TableHead className="text-right">{t("Заказов")}</TableHead><TableHead className="text-right">{t("Метров")}</TableHead><TableHead className="text-right">{t("Выручка")}</TableHead></TableRow></TableHeader>
             <TableBody>
               {managers.map((m) => (
                 <TableRow key={m.manager_id}><TableCell>{nameOf(m.manager_id)}</TableCell><TableCell className="text-right">{m.orders}</TableCell><TableCell className="text-right">{meters(m.meters)}</TableCell><TableCell className="text-right font-semibold">{rub(m.revenue)}</TableCell></TableRow>
               ))}
-              {managers.length === 0 && <TableRow><TableCell colSpan={4} className="py-6 text-center text-muted-foreground">Нет оплаченных заказов за период</TableCell></TableRow>}
+              {managers.length === 0 && <TableRow><TableCell colSpan={4} className="py-6 text-center text-muted-foreground">{t("Нет оплаченных заказов за период")}</TableCell></TableRow>}
             </TableBody>
           </Table>
         </Card>
       </div>
 
-      <Card title="Проданные товары за период" className="mt-6">
+      <Card title={t("Проданные товары за период")} className="mt-6">
         <Table>
-          <TableHeader><TableRow><TableHead>Ткань</TableHead><TableHead className="text-right">Метров</TableHead><TableHead className="text-right">Выручка</TableHead></TableRow></TableHeader>
+          <TableHeader><TableRow><TableHead>{t("Ткань")}</TableHead><TableHead className="text-right">{t("Метров")}</TableHead><TableHead className="text-right">{t("Выручка")}</TableHead></TableRow></TableHeader>
           <TableBody>
             {topProducts(sold, 100).map((t) => <TableRow key={t.name}><TableCell>{t.name}</TableCell><TableCell className="text-right">{meters(t.meters)}</TableCell><TableCell className="text-right">{rub(t.revenue)}</TableCell></TableRow>)}
           </TableBody>
