@@ -50,7 +50,7 @@ function Employees() {
       qc.invalidateQueries({ queryKey: ["all-roles"] });
       qc.invalidateQueries({ queryKey: ["profiles"] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(t(e.message)),
   });
   const toggle = useMutation({
     mutationFn: async ({ user_id, role, on }: { user_id: string; role: AppRole; on: boolean }) => {
@@ -60,7 +60,7 @@ function Employees() {
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["all-roles"] }),
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(t(e.message)),
   });
 
   if (!isAdmin) return <p className="text-muted-foreground">{t("Раздел доступен только супер-админу.")}</p>;
